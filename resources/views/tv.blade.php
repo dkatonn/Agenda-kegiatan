@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agenda Kegiatan - TV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-900: #0c4482;
+            --blue-700: #1d5e9f;
+            --blue-500: #2f75bd;
+            --yellow-500: #f1c80f;
+            --gray-100: #eef2f7;
+            --gray-200: #dbe3ee;
+            --text: #112947;
+            --success-row: #b9e2bf;
+            --warning-row: #e8dbab;
+            --neutral-row: #c6cdd7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Poppins", sans-serif;
+            color: var(--text);
+            background: #d9dee5;
+        }
+
+        .tv-screen {
+            width: 100vw;
+            height: 100vh;
+            background: var(--gray-100);
+            position: relative;
+            overflow: hidden;
+        }
+
+.tv-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{{ asset('assets/images/tes2.jpeg') }}');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+        .main-layout {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: calc(100vh - 54px);
+            padding: 0.8vw 1.2vw 0.7vw;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            row-gap: 0.7vw;
+        }
+
+        /* ===== TOP ROW 3 SEJAJAR ===== */
+
+.top-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr 1fr;
+    gap: 1vw;
+    align-items: stretch;
+}
+
+.logo-box {
+    display: flex;
+    align-items: center;
+}
+
+.logo-box img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: start;
+        }
+
+        .brand-text {
+            margin-top: 1vw;
+            padding-left: 2.5vw;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            font-size: clamp(26px, 3.05vw, 62px);
+            line-height: 1.03;
+            font-weight: 800;
+            color: var(--blue-900);
+            text-transform: uppercase;
+        }
+
+        .brand-text p {
+            margin: 0.4vw 0 0;
+            font-size: clamp(11px, 1vw, 20px);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #2f5688;
+            font-weight: 600;
+        }
+
+        .brand-text span {
+            color: var(--yellow-500);
+        }
+
+        .clock-panel {
+            justify-self: end;
+            text-align: right;
+        }
+
+        .clock {
+            margin: 0;
+            font-size: clamp(38px, 3.3vw, 72px);
+            line-height: 1;
+            font-weight: 800;
+            color: var(--blue-900);
+            letter-spacing: 0.04em;
+        }
+
+        .date {
+            margin: 0.25vw 0 0;
+            font-size: clamp(16px, 1.35vw, 29px);
+            color: #3f6696;
+            font-weight: 600;
+        }
+
+        .top-panels {
+            display: grid;
+            grid-template-columns: 0.38fr 0.62fr;
+            gap: 0.8vw;
+            min-height: 12.8vw;
+        }
+
+        .card,
+        .video {
+            border-radius: 0.7vw;
+            border: 1px solid #c4d2e4;
+            background: rgba(245, 249, 255, 0.88);
+            box-shadow: 0 0.2vw 0.9vw rgba(12, 43, 78, 0.08);
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.1vw 1.4vw;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 4.9vw;
+            height: 4.9vw;
+            min-width: 78px;
+            min-height: 78px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #4f88c3, #0d467f);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: clamp(28px, 1.9vw, 38px);
+            font-weight: 700;
+            margin-bottom: 0.55vw;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: clamp(22px, 1.42vw, 31px);
+            font-weight: 700;
+        }
+
+        .card p {
+            margin: 0.1vw 0 0;
+            font-size: clamp(16px, 1.03vw, 22px);
+            color: #4e6890;
+        }
+
+        .video {
+            background: linear-gradient(90deg, #1a5795 0%, #8aa9cc 100%);
+            display: grid;
+            place-items: center;
+        }
+
+        .play {
+            width: 4.2vw;
+            height: 4.2vw;
+            min-width: 66px;
+            min-height: 66px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(255, 255, 255, 0.24);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .play::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 54%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-top: 0.7vw solid transparent;
+            border-bottom: 0.7vw solid transparent;
+            border-left: 1.06vw solid #fff;
+        }
+
+        .tables {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8vw;
+        }
+
+        .agenda {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.65vw;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 0.2vw 0.8vw rgba(10, 36, 67, 0.08);
+        }
+
+        .agenda-title {
+            background: var(--blue-900);
+            color: #fff;
+            text-align: center;
+            font-size: clamp(17px, 1.16vw, 25px);
+            padding: 0.52vw;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            min-height: 0;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: clamp(14px, 0.96vw, 20px);
+        }
+
+        th,
+        td {
+            border: 1px solid #c9d4e3;
+            padding: 0.4vw 0.5vw;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #e3e8f0;
+            color: #335380;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(-n + 3) {
+            background: var(--success-row);
+        }
+
+        tbody tr:nth-child(n + 4):nth-child(-n + 5) {
+            background: var(--warning-row);
+        }
+
+        tbody tr:nth-child(n + 6) {
+            background: var(--neutral-row);
+        }
+
+        .ticker {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            background: var(--yellow-500);
+            border-top: 2px solid var(--blue-900);
+        }
+
+        .ticker-label {
+            width: clamp(150px, 13vw, 260px);
+            height: 100%;
+            display: grid;
+            place-items: center;
+            background: var(--blue-900);
+            color: #fff;
+            font-size: clamp(17px, 0.98vw, 22px);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .ticker-track {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            font-size: clamp(20px, 1.22vw, 26px);
+            font-weight: 700;
+            color: #153963;
+            animation: marquee 21s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="tv-screen">
+        <div class="tv-bg" id="tv-bg"></div>
+
+        <div class="main-layout">
+<header class="header">
+    <div class="brand-text">
+        <h1><span>Biro</span> Kepegawaian Data & Informasi</h1>
+        <p><span>Agenda</span> Kegiatan Harian</p>
+
+    </div>
+
+    <div class="clock-panel">
+        <h2 class="clock" id="clock">00:00:00</h2>
+        <p class="date" id="date">Selasa, 10 Maret 2026</p>
+    </div>
+</header>
+
+<section class="top-row">
+
+    <div class="logo-box">
+        <img 
+            src="{{ asset('assets/images/logo-dat.png') }}" 
+            alt="Logo Data dan Informasi">
+    </div>
+
+    <article class="card">
+        <div class="avatar">SP</div>
+        <h2>Shaun Patrick Hendra</h2>
+        <p>Magang Biro SDM</p>
+    </article>
+
+    <article class="video">
+        <button class="play" aria-label="Putar video"></button>
+    </article>
+
+</section>
+
+            <section class="tables">
+                <article class="agenda">
+                    <div class="agenda-title">Agenda Kegiatan Tata Usaha</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th style="width: 38%;">Tanggal Tempat</th>
+                                <th style="width: 39%;">Nama Kegiatan</th>
+                                <th style="width: 23%;">Disposisi</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>10/03 - Ruang Rapat</td><td>Koordinasi Internal</td><td>Kasubag TU</td></tr>
+                            <tr><td>10/03 - Aula</td><td>Briefing Pegawai</td><td>Staff TU</td></tr>
+                            <tr><td>10/03 - Lt.2</td><td>Validasi Dokumen</td><td>Admin TU</td></tr>
+                            <tr><td>11/03 - Ruang Arsip</td><td>Pemeriksaan Berkas</td><td>Arsiparis</td></tr>
+                            <tr><td>11/03 - Zoom</td><td>Sinkronisasi Data</td><td>Operator</td></tr>
+                            <tr><td>12/03 - Aula</td><td>Evaluasi Mingguan</td><td>Kasubag TU</td></tr>
+                            <tr><td>12/03 - Ruang Rapat</td><td>Rencana Program</td><td>Tim TU</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="agenda">
+                    <div class="agenda-title">Agenda Kegiatan Data & Informasi</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th style="width: 38%;">Tanggal Tempat</th>
+                                <th style="width: 39%;">Nama Kegiatan</th>
+                                <th style="width: 23%;">Disposisi</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>10/03 - Command Center</td><td>Monitoring Dashboard</td><td>Analis Data</td></tr>
+                            <tr><td>10/03 - Ruang Server</td><td>Update Integrasi API</td><td>Programmer</td></tr>
+                            <tr><td>10/03 - Lab Data</td><td>Uji Validitas Dataset</td><td>Data Engineer</td></tr>
+                            <tr><td>11/03 - Zoom</td><td>Rapat Lintas Unit</td><td>Koordinator</td></tr>
+                            <tr><td>11/03 - Lt.3</td><td>Pemetaan KPI</td><td>Analis Sistem</td></tr>
+                            <tr><td>12/03 - Ruang Rapat</td><td>Review SLA Layanan</td><td>Supervisor</td></tr>
+                            <tr><td>12/03 - Command Center</td><td>Pelaporan Mingguan</td><td>Tim Data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </div>
+
+        <footer class="ticker">
+            <div class="ticker-label">PENGUMUMAN</div>
+            <div class="ticker-track">
+                <div class="ticker-content">
+                    Peringatan Hari Lahir Pancasila akan dilaksanakan di Lapangan Monas pukul 08:00 WIB.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const monthName = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        const dayName = [
+            "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"
+        ];
+
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, "0");
+            const m = String(now.getMinutes()).padStart(2, "0");
+            const s = String(now.getSeconds()).padStart(2, "0");
+            const d = now.getDate();
+            const mm = monthName[now.getMonth()];
+            const y = now.getFullYear();
+            const day = dayName[now.getDay()];
+
+            document.getElementById("clock").textContent = `${h}:${m}:${s}`;
+            document.getElementById("date").textContent = `${day}, ${d} ${mm} ${y}`;
+        }
+
+        function useFirstExistingImage(candidates, onFound) {
+            let index = 0;
+
+            const next = () => {
+                if (index >= candidates.length) {
+                    return;
+                }
+
+                const url = candidates[index++];
+                const img = new Image();
+                img.onload = () => onFound(url);
+                img.onerror = next;
+                img.src = url;
+            };
+
+            next();
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+    </script>
+</body>
+</html>
