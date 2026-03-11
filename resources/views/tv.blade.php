@@ -61,12 +61,12 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr><td>10/03 - Ruang Rapat</td><td>Koordinasi Internal</td><td>Kasubag TU</td></tr>
-                            <tr><td>10/03 - Aula</td><td>Briefing Pegawai</td><td>Staff TU</td></tr>
-                            <tr><td>10/03 - Lt.2</td><td>Validasi Dokumen</td><td>Admin TU</td></tr>
-                            <tr><td>11/03 - Ruang Arsip</td><td>Pemeriksaan Berkas</td><td>Arsiparis</td></tr>
-                            <tr><td>11/03 - Zoom</td><td>Sinkronisasi Data</td><td>Operator</td></tr>
-                            <tr><td>12/03 - Aula</td><td>Evaluasi Mingguan</td><td>Kasubag TU</td></tr>
+                            <tr><td>10-03-26 10:15 WIB  - Ruang Rapat</td><td>Koordinasi Internal</td><td>Kasubag TU</td></tr>
+                            <tr><td>10-03-26 10:15 WIB  - Aula</td><td>Briefing Pegawai</td><td>Staff TU</td></tr>
+                            <tr><td>10-03-26 10:15 WIB  - Lt.2</td><td>Validasi Dokumen</td><td>Admin TU</td></tr>
+                            <tr><td>11-03-26 10:15 WIB  - Ruang Arsip</td><td>Pemeriksaan Berkas</td><td>Arsiparis</td></tr>
+                            <tr><td>11-03-26 10:15 WIB  - Zoom</td><td>Sinkronisasi Data</td><td>Operator</td></tr>
+                            <tr><td>12-03-26 10:15 WIB  - Aula</td><td>Evaluasi Mingguan</td><td>Kasubag TU</td></tr>
                             <tr><td>12/03 - Ruang Rapat</td><td>Rencana Program</td><td>Tim TU</td></tr>
                             </tbody>
                         </table>
@@ -85,13 +85,13 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr><td>10/03 - Command Center</td><td>Monitoring Dashboard</td><td>Analis Data</td></tr>
-                            <tr><td>10/03 - Ruang Server</td><td>Update Integrasi API</td><td>Programmer</td></tr>
-                            <tr><td>10/03 - Lab Data</td><td>Uji Validitas Dataset</td><td>Data Engineer</td></tr>
-                            <tr><td>11/03 - Zoom</td><td>Rapat Lintas Unit</td><td>Koordinator</td></tr>
-                            <tr><td>11/03 - Lt.3</td><td>Pemetaan KPI</td><td>Analis Sistem</td></tr>
-                            <tr><td>12/03 - Ruang Rapat</td><td>Review SLA Layanan</td><td>Supervisor</td></tr>
-                            <tr><td>12/03 - Command Center</td><td>Pelaporan Mingguan</td><td>Tim Data</td></tr>
+                            <tr><td>10-03-26 10:15 WIB - Command Center</td><td>Monitoring Dashboard</td><td>Analis Data</td></tr>
+                            <tr><td>10-03-26 10:15 WIB  - Ruang Server</td><td>Update Integrasi API</td><td>Programmer</td></tr>
+                            <tr><td>10-03-26 10:15 WIB - Lab Data</td><td>Uji Validitas Dataset</td><td>Data Engineer</td></tr>
+                            <tr><td>11-03-26 10:15 WIB - Zoom</td><td>Rapat Lintas Unit</td><td>Koordinator</td></tr>
+                            <tr><td>11-03-26 10:15 WIB - Lt.3</td><td>Pemetaan KPI</td><td>Analis Sistem</td></tr>
+                            <tr><td>12-03-26 10:15 WIB - Ruang Rapat</td><td>Review SLA Layanan</td><td>Supervisor</td></tr>
+                            <tr><td>12-03-26 10:15 WIB - Command Center</td><td>Pelaporan Mingguan</td><td>Tim Data</td></tr>
                             </tbody>
                         </table>
                     </div>
