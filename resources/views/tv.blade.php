@@ -37,12 +37,39 @@
     </div>
 
     <article class="card">
-        <div class="avatar">SP</div>
-        <h2>Shaun Patrick Hendra</h2>
-        <p>Magang Biro SDM</p>
+        @php
+            $initials = collect(explode(' ', $profile->name))
+                ->filter()
+                ->take(2)
+                ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                ->implode('');
+        @endphp
+
+        @if (!empty($profile->photo_path))
+            <img class="avatar-image" src="{{ asset($profile->photo_path) }}" alt="{{ $profile->name }}">
+        @else
+            <div class="avatar">{{ $initials }}</div>
+        @endif
+        <h2>{{ $profile->name }}</h2>
+        <p>{{ $profile->position }}</p>
     </article>
 
+    @php
+        $sumberVideo = '';
+        if (!empty($video->source_path)) {
+            $sumberVideo = \Illuminate\Support\Str::startsWith($video->source_path, ['http://', 'https://'])
+                ? $video->source_path
+                : asset($video->source_path);
+        }
+    @endphp
+
     <article class="video">
+        @if ($sumberVideo)
+            <video class="video-player" autoplay muted loop playsinline>
+                <source src="{{ $sumberVideo }}">
+                Browser ini tidak mendukung pemutar video.
+            </video>
+        @endif
         <button class="play" aria-label="Putar video"></button>
     </article>
 
@@ -61,13 +88,17 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr><td>10-03-26 10:15 WIB  - Ruang Rapat</td><td>Koordinasi Internal</td><td>Kasubag TU</td></tr>
-                            <tr><td>10-03-26 10:15 WIB  - Aula</td><td>Briefing Pegawai</td><td>Staff TU</td></tr>
-                            <tr><td>10-03-26 10:15 WIB  - Lt.2</td><td>Validasi Dokumen</td><td>Admin TU</td></tr>
-                            <tr><td>11-03-26 10:15 WIB  - Ruang Arsip</td><td>Pemeriksaan Berkas</td><td>Arsiparis</td></tr>
-                            <tr><td>11-03-26 10:15 WIB  - Zoom</td><td>Sinkronisasi Data</td><td>Operator</td></tr>
-                            <tr><td>12-03-26 10:15 WIB  - Aula</td><td>Evaluasi Mingguan</td><td>Kasubag TU</td></tr>
-                            <tr><td>12/03 - Ruang Rapat</td><td>Rencana Program</td><td>Tim TU</td></tr>
+                            @forelse ($tuAgendas as $agenda)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($agenda->agenda_date)->format('d-m-y') }} {{ substr((string) $agenda->agenda_time, 0, 5) }} WIB - {{ $agenda->location }}</td>
+                                    <td>{{ $agenda->title }}</td>
+                                    <td>{{ $agenda->disposition }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="empty-state">Belum ada agenda TU.</td>
+                                </tr>
+                            @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -85,13 +116,17 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr><td>10-03-26 10:15 WIB - Command Center</td><td>Monitoring Dashboard</td><td>Analis Data</td></tr>
-                            <tr><td>10-03-26 10:15 WIB  - Ruang Server</td><td>Update Integrasi API</td><td>Programmer</td></tr>
-                            <tr><td>10-03-26 10:15 WIB - Lab Data</td><td>Uji Validitas Dataset</td><td>Data Engineer</td></tr>
-                            <tr><td>11-03-26 10:15 WIB - Zoom</td><td>Rapat Lintas Unit</td><td>Koordinator</td></tr>
-                            <tr><td>11-03-26 10:15 WIB - Lt.3</td><td>Pemetaan KPI</td><td>Analis Sistem</td></tr>
-                            <tr><td>12-03-26 10:15 WIB - Ruang Rapat</td><td>Review SLA Layanan</td><td>Supervisor</td></tr>
-                            <tr><td>12-03-26 10:15 WIB - Command Center</td><td>Pelaporan Mingguan</td><td>Tim Data</td></tr>
+                            @forelse ($dataAgendas as $agenda)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($agenda->agenda_date)->format('d-m-y') }} {{ substr((string) $agenda->agenda_time, 0, 5) }} WIB - {{ $agenda->location }}</td>
+                                    <td>{{ $agenda->title }}</td>
+                                    <td>{{ $agenda->disposition }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="empty-state">Belum ada agenda Data.</td>
+                                </tr>
+                            @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -103,7 +138,7 @@
             <div class="ticker-label">PENGUMUMAN</div>
             <div class="ticker-track">
                 <div class="ticker-content">
-                    Peringatan Hari Lahir Pancasila akan dilaksanakan di Lapangan Monas pukul 08:00 WIB.
+                    {{ $runningText }}
                 </div>
             </div>
         </footer>

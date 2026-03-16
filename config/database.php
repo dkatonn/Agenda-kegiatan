@@ -63,6 +63,46 @@ return [
             ]) : [],
         ],
 
+        'tu' => [
+            'driver' => 'mysql',
+            'url' => env('DB_TU_URL'),
+            'host' => env('DB_TU_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_TU_PORT', env('DB_PORT', '3306')),
+            'database' => env('DB_TU_DATABASE', 'agenda_kegiatan_tu'),
+            'username' => env('DB_TU_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('DB_TU_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_TU_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'data' => [
+            'driver' => 'mysql',
+            'url' => env('DB_DATA_URL'),
+            'host' => env('DB_DATA_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_DATA_PORT', env('DB_PORT', '3306')),
+            'database' => env('DB_DATA_DATABASE', 'agenda_kegiatan_data'),
+            'username' => env('DB_DATA_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('DB_DATA_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_DATA_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
