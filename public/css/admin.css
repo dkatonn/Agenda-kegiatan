@@ -1,0 +1,196 @@
+body{
+    font-family:'Poppins',sans-serif;
+    margin:0;
+    height:100%;
+}
+
+html{
+    height:100%;
+}
+
+/* MAIN LAYOUT */
+
+.admin-wrapper{
+    display:flex;
+    min-height:100%;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:220px;
+    background:#1d4c8c;
+    color:white;
+    padding:25px 20px;
+}
+
+.logo{
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:30px;
+}
+
+.menu a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:10px 12px;
+    border-radius:8px;
+    margin-bottom:6px;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:rgba(255,255,255,0.15);
+}
+
+.menu a.active{
+    background:rgba(255,255,255,0.25);
+}
+
+/* MAIN AREA */
+
+.main{
+    flex:1;
+    background:#f4f6fa;
+}
+
+/* TOPBAR */
+
+.topbar{
+    height:70px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-left:30px;
+    padding-right:30px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+/* CONTENT */
+
+.content{
+    padding:30px;
+}
+
+/* CARD */
+
+.admin-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:25px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.06);
+}
+
+/* CARD HEADER */
+
+.card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.card-header h6{
+    font-size:16px;
+    font-weight:600;
+    margin:0;
+}
+
+.card-title{
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:15px;
+}
+
+/* TABLE */
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table th{
+    font-size:14px;
+    text-align:left;
+    padding:10px;
+    background:#f1f5f9;
+}
+
+.table td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+
+/* AVATAR */
+
+.avatar{
+    width:40px;
+    height:40px;
+    border-radius:8px;
+    object-fit:cover;
+}
+
+/* VIDEO PREVIEW */
+
+video{
+    border-radius:6px;
+}
+
+/* BUTTON SPACING */
+
+.btn{
+    font-size:14px;
+}
+
+/* ===============================
+   DASHBOARD EXTRA
+================================= */
+.preview-tv{
+    height:250px;
+    border-radius:10px;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    background:black;
+}
+
+.preview-tv::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.3);
+}
+
+.preview-label{
+    position:relative;
+    z-index:2;
+    opacity:0.7;
+}
+
+.running-text-preview{
+    position:absolute;
+    bottom:10px;
+    white-space:nowrap;
+    animation: marquee 15s linear infinite;
+    font-size:14px;
+    z-index:2;
+    will-change: transform;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.info-box{
+    background:#e8f0fe;
+    padding:12px;
+    border-radius:8px;
+    font-size:13px;
+}
