@@ -48,7 +48,7 @@
                     Video
                 </a>
 
-                <a href="{{ route('admin.agenda') }}" class="{{ request()->routeIs('admin.agendaa*') ? 'active' : '' }}">
+                <a href="{{ route('admin.agenda') }}" class="{{ request()->routeIs('admin.agenda*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-event"></i>
                     Agenda
                 </a>
@@ -78,6 +78,18 @@
                 @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
+                </div>
+                @endif
+
+                @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                @endif
+
+                @if($errors->any())
+                <div class="alert alert-danger">
+                    {{ $errors->first() }}
                 </div>
                 @endif
 

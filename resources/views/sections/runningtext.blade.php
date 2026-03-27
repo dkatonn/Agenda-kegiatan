@@ -10,9 +10,7 @@
     <div class="ticker-track">
 
         <div class="ticker-content">
-
-            Peringatan Hari Lahir Pancasila akan dilaksanakan di Lapangan Monas pukul 08:00 WIB.
-
+            {{ $settings['running_text'] ?? 'Running text belum diatur dari panel admin.' }}
         </div>
 
     </div>

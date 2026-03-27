@@ -111,6 +111,13 @@ html{
     margin-bottom:20px;
 }
 
+.profile-avatar-image{
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    color:transparent;
+}
+
 /* NAME */
 
 .profile-name{
@@ -193,6 +200,16 @@ html{
     height:380px;
     background:#0c2b55;
     border-radius:10px;
+    object-fit:cover;
+}
+
+.video-empty{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:24px;
+    font-weight:600;
 }
 
 /* ROW 3 */
@@ -225,6 +242,7 @@ html{
     display:flex;
     align-items:center;
     gap:15px;
+    margin-bottom:16px;
 }
 
 .agenda-date{
@@ -265,6 +283,11 @@ html{
 
 .agenda-tag.yellow{
     background:#ffe7a0;
+}
+
+.agenda-empty{
+    font-size:15px;
+    color:#6b7280;
 }
 
 /* ROW 4 */

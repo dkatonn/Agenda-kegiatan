@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Employee;
 use App\Models\Agenda;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -14,8 +15,10 @@ class AdminController extends Controller
         $setting = Setting::pluck('value', 'key')->toArray();
         $employee = Employee::all();
         $agenda = Agenda::latest()->get();
+        $activeVideoUrl = ! empty($setting['video']) ? Storage::disk('public')->url($setting['video']) : null;
+        $videoCount = ! empty($setting['video']) ? 1 : 0;
 
-        return view('admin.dashboard', compact('setting', 'employee', 'agenda'));
+        return view('admin.dashboard', compact('setting', 'employee', 'agenda', 'activeVideoUrl', 'videoCount'));
     }
 
     public function update(Request $request)

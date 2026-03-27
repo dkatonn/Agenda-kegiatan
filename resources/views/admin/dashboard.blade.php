@@ -23,7 +23,7 @@
 
     <div class="col-md-3">
         <div class="admin-card text-center">
-            <h5>5</h5>
+            <h5>{{ $videoCount }}</h5>
             <small>Video</small>
         </div>
     </div>
@@ -56,8 +56,14 @@
                     background-position: center;
                  ">
 
-                @if(empty($setting['background']))
+                @if(empty($setting['background']) && empty($activeVideoUrl))
                 <span class="preview-label">Preview Tampilan TV</span>
+                @endif
+
+                @if($activeVideoUrl)
+                <video class="dashboard-video-preview" autoplay muted loop playsinline>
+                    <source src="{{ $activeVideoUrl }}" type="video/mp4">
+                </video>
                 @endif
 
                 <div class="running-text-preview">

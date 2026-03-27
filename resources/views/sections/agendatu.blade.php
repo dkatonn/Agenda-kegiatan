@@ -9,43 +9,35 @@
     </div>
 
 
-    @for($i=0;$i<6;$i++)
-
-        <div class="agenda-item">
-
+    @forelse($agendaTu as $agenda)
+    <div class="agenda-item">
         <div class="agenda-date">
-
-            26<br>FEB
-
+            {{ \Carbon\Carbon::parse($agenda->date)->format('d') }}<br>{{ strtoupper(\Carbon\Carbon::parse($agenda->date)->translatedFormat('M')) }}
         </div>
-
 
         <div class="agenda-content">
-
             <div class="agenda-name">
-                Rapat Koordinasi
+                {{ $agenda->name }}
             </div>
 
             <div class="agenda-info">
-                Ruang Rapat
+                {{ $agenda->location }}
             </div>
 
             <div class="agenda-info">
-                Disposisi : Kepala Biro
+                Disposisi : {{ $agenda->disposition }}
             </div>
-
         </div>
-
 
         <div class="agenda-tag">
-
-            PENDING
-
+            {{ $agenda->time }}
         </div>
-
-</div>
-
-@endfor
+    </div>
+    @empty
+    <div class="agenda-empty">
+        Belum ada agenda yang ditampilkan.
+    </div>
+    @endforelse
 
 
 </div>

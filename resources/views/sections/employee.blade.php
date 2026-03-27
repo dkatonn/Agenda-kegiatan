@@ -1,103 +1,79 @@
 <div class="profile-box">
-
+    @forelse($employees as $employee)
     <div class="profile-slide">
+        <div class="profile-avatar @if($employee->image_path) profile-avatar-image @endif"
+            @if($employee->image_path)
+            style="background-image:url('{{ asset('storage/'.$employee->image_path) }}');"
+            @endif>
+            @if(!$employee->image_path)
+            <i class="fa-solid fa-user"></i>
+            @endif
+        </div>
 
+        <div class="profile-name">
+            {{ $employee->name }}
+        </div>
+
+        <div class="profile-role">
+            {{ $employee->role }}
+        </div>
+    </div>
+    @empty
+    <div class="profile-slide">
         <div class="profile-avatar">
             <i class="fa-solid fa-user"></i>
         </div>
 
         <div class="profile-name">
-            Nama ASN 1
+            Data pegawai belum tersedia
         </div>
 
         <div class="profile-role">
-            Kepala Biro SDM
+            Silakan tambahkan dari panel admin
         </div>
-
     </div>
-
-
-    <div class="profile-slide">
-
-        <div class="profile-avatar">
-            <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div class="profile-name">
-            Nama ASN 2
-        </div>
-
-        <div class="profile-role">
-            Analis Kepegawaian
-        </div>
-
-    </div>
-
-
-    <div class="profile-slide">
-
-        <div class="profile-avatar">
-            <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div class="profile-name">
-            Nama ASN 3
-        </div>
-
-        <div class="profile-role">
-            Staff Administrasi
-        </div>
-
-    </div>
-
+    @endforelse
 
     <div class="profile-indicator">
+        @foreach($employees as $employee)
+        <span class="dot {{ $loop->first ? 'active' : '' }}"></span>
+        @endforeach
 
+        @if($employees->isEmpty())
         <span class="dot active"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-
+        @endif
     </div>
 
 </div>
 
 
 <script>
-    let slides =
-        document.querySelectorAll(".profile-slide");
-
-    let dots =
-        document.querySelectorAll(".dot");
-
+    const slides = document.querySelectorAll(".profile-slide");
+    const dots = document.querySelectorAll(".dot");
     let index = 0;
 
-
     function rotateEmployee() {
+        if (!slides.length) {
+            return;
+        }
 
-        slides.forEach(slide =>
-            slide.style.display = "none"
-        );
+        slides.forEach(slide => {
+            slide.style.display = "none";
+        });
 
-        dots.forEach(dot =>
-            dot.classList.remove("active")
-        );
+        dots.forEach(dot => {
+            dot.classList.remove("active");
+        });
 
         slides[index].style.display = "flex";
 
-        dots[index].classList.add("active");
-
-        index++;
-
-        if (index >= slides.length) {
-
-            index = 0;
-
+        if (dots[index]) {
+            dots[index].classList.add("active");
         }
 
+        index = (index + 1) % slides.length;
     }
 
-
     setInterval(rotateEmployee, 8000);
-
     rotateEmployee();
 </script>

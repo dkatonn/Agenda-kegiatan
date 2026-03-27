@@ -14,6 +14,12 @@ class Agenda extends Model
         'time',
         'name',
         'location',
-        'disposition'
+        'disposition',
+        'title',
+        'agenda_date',
+        'agenda_time',
+        'description',
+        'unit',
+        'is_active',
     ];
 }

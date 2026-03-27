@@ -52,4 +52,9 @@ class EmployeeController extends Controller
         Employee::findOrFail($id)->delete();
         return back();
     }
+
+    public function delete($id)
+    {
+        return $this->destroy($id);
+    }
 }

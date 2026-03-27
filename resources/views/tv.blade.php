@@ -27,7 +27,11 @@
 
 <body>
 
-    <div class="tv-container wallpaper">
+    <div
+        class="tv-container wallpaper"
+        @if(!empty($settings['background']))
+        style="background-image:url('{{ asset('storage/'.$settings['background']) }}');"
+        @endif>
 
 
 

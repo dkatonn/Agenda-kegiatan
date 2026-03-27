@@ -39,7 +39,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::put('/employee/{id}', [EmployeeController::class, 'update'])->name('employee.update');
 
-    Route::delete('/employee/{id}', [EmployeeController::class, 'delete'])->name('employee.delete');
+    Route::delete('/employee/{id}', [EmployeeController::class, 'destroy'])->name('employee.delete');
 
 
     // CRUD AGENDA
@@ -48,7 +48,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::put('/agenda/{id}', [AgendaController::class, 'update'])->name('agenda.update');
 
-    Route::delete('/agenda/{id}', [AgendaController::class, 'delete'])->name('agenda.delete');
+    Route::delete('/agenda/{id}', [AgendaController::class, 'destroy'])->name('agenda.delete');
 
 
     // CRUD VIDEO
