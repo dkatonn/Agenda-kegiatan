@@ -4,102 +4,144 @@
 
 @section('content')
 
-<div class="admin-card">
+<div class="admin-card data-panel">
 
-    <div class="card-header">
-
-        <h6>
-            <i class="bi bi-people"></i>
-            Profil Pegawai
-        </h6>
+    <div class="panel-header">
+        <div>
+            <div class="section-eyebrow">Manajemen Data</div>
+            <h6 class="panel-title">
+                <i class="bi bi-people"></i>
+                Profil Pegawai
+            </h6>
+        </div>
 
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createEmployeeModal">
             Tambah
         </button>
-
     </div>
 
-    <table class="table">
+    <div class="panel-toolbar table-toolbar">
+        <div class="panel-meta">Total {{ $employee->count() }} pegawai tersimpan.</div>
+        <div class="table-controls">
+            <label class="table-control-inline">
+                <span>Show</span>
+                <select class="form-select form-select-sm table-page-size">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                </select>
+                <span>entries</span>
+            </label>
 
-        <thead>
-            <tr>
-                <th>Foto</th>
-                <th>Nama</th>
-                <th>Jabatan</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
+            <label class="table-control-search">
+                <span>Search:</span>
+                <input type="text" class="form-control form-control-sm table-search-input" placeholder="Cari pegawai...">
+            </label>
+        </div>
+    </div>
 
-        <tbody>
+    <div class="table-shell">
+        <table class="table admin-data-table js-admin-table table-centered-content">
 
-            @foreach($employee as $emp)
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nama</th>
+                    <th>Jabatan</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
 
-            <tr>
+            <tbody>
 
-                <td>
-                    @if($emp->image_path)
-                    <img src="{{ asset('storage/'.$emp->image_path) }}" class="avatar">
-                    @endif
-                </td>
+                @foreach($employee as $emp)
 
-                <td>{{ $emp->name }}</td>
-                <td>{{ $emp->role }}</td>
+                <tr>
 
-                <td>
+                    <td>
+                        @if($emp->image_path)
+                        <img src="{{ asset('storage/'.$emp->image_path) }}" class="avatar">
+                        @endif
+                    </td>
 
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ $emp->id }}">
-                        Edit
-                    </button>
+                    <td>{{ $emp->name }}</td>
+                    <td>{{ $emp->role }}</td>
 
-                    <form action="{{ route('admin.employee.delete',$emp->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
+                    <td>
+                        <div class="action-group">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ $emp->id }}">
+                                Edit
+                            </button>
 
-                        <button class="btn btn-sm btn-outline-danger">
-                            Hapus
-                        </button>
+                            <form action="{{ route('admin.employee.delete',$emp->id) }}" method="POST" class="d-inline js-confirm-delete" data-confirm-message="Yakin ingin menghapus data pegawai ini?">
+                                @csrf
+                                @method('DELETE')
 
-                    </form>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    Hapus
+                                </button>
 
-                </td>
+                            </form>
+                        </div>
+                    </td>
 
-            </tr>
+                </tr>
 
-            @endforeach
+                @endforeach
 
-        </tbody>
+            </tbody>
 
-    </table>
+        </table>
+
+        <div class="table-footer">
+            <div class="table-info"></div>
+            <div class="table-pagination">
+                <button type="button" class="btn btn-light btn-sm table-prev">Prev</button>
+                <span class="table-page-indicator">1</span>
+                <button type="button" class="btn btn-light btn-sm table-next">Next</button>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 @foreach($employee as $emp)
 <div class="modal fade" id="editEmployeeModal{{ $emp->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content admin-form-modal">
             <form action="{{ route('admin.employee.update', $emp->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Pegawai</h5>
+                    <div>
+                        <div class="modal-eyebrow">Update Profil</div>
+                        <h5 class="modal-title">Edit Pegawai</h5>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nama</label>
-                        <input type="text" name="name" class="form-control" value="{{ $emp->name }}" required>
+                    <div class="form-section-note">
+                        Perbarui identitas dan foto pegawai. Perubahan akan langsung tampil pada layar TV setelah disimpan.
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Jabatan</label>
-                        <input type="text" name="role" class="form-control" value="{{ $emp->role }}" required>
+                    <div class="admin-form-grid admin-form-grid-2">
+                        <div class="mb-3">
+                            <label class="form-label">Nama</label>
+                            <input type="text" name="name" class="form-control" value="{{ $emp->name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jabatan</label>
+                            <input type="text" name="role" class="form-control" value="{{ $emp->role }}" required>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label">Foto</label>
                         <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Kosongkan jika tidak ingin mengganti foto pegawai.</small>
                     </div>
                 </div>
 
@@ -114,30 +156,40 @@
 @endforeach
 
 <div class="modal fade" id="createEmployeeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content admin-form-modal">
             <form action="{{ route('admin.employee.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Pegawai</h5>
+                    <div>
+                        <div class="modal-eyebrow">Tambah Data</div>
+                        <h5 class="modal-title">Tambah Pegawai</h5>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nama</label>
-                        <input type="text" name="name" class="form-control" required>
+                    <div class="form-section-note">
+                        Tambahkan profil pegawai baru untuk ditampilkan pada rotasi layar TV.
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Jabatan</label>
-                        <input type="text" name="role" class="form-control" required>
+                    <div class="admin-form-grid admin-form-grid-2">
+                        <div class="mb-3">
+                            <label class="form-label">Nama</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jabatan</label>
+                            <input type="text" name="role" class="form-control" required>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label">Foto</label>
                         <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Gunakan foto yang jelas agar tampil rapi pada layar TV.</small>
                     </div>
                 </div>
 

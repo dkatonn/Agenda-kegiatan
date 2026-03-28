@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Employee;
 use App\Models\Agenda;
+use App\Models\Video;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
@@ -15,8 +17,14 @@ class AdminController extends Controller
         $setting = Setting::pluck('value', 'key')->toArray();
         $employee = Employee::all();
         $agenda = Agenda::latest()->get();
-        $activeVideoUrl = ! empty($setting['video']) ? Storage::disk('public')->url($setting['video']) : null;
-        $videoCount = ! empty($setting['video']) ? 1 : 0;
+        $activeVideo = Schema::hasTable('videos')
+            ? Video::query()->where('is_active', true)->latest()->first()
+            : null;
+        $activeVideoPath = $activeVideo?->file_path ?? ($setting['video'] ?? null);
+        $activeVideoUrl = $activeVideoPath ? Storage::disk('public')->url($activeVideoPath) : null;
+        $videoCount = Schema::hasTable('videos')
+            ? Video::query()->count()
+            : (! empty($setting['video']) ? 1 : 0);
 
         return view('admin.dashboard', compact('setting', 'employee', 'agenda', 'activeVideoUrl', 'videoCount'));
     }
