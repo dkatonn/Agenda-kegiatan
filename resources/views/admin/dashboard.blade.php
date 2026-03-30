@@ -44,32 +44,25 @@
     <div class="col-md-8">
         <div class="admin-card">
 
-            <h6 class="card-title">
-                <i class="bi bi-tv"></i>
-                Preview TV
-            </h6>
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-tv"></i>
+                    Preview TV
+                </h6>
 
-            <div class="preview-tv"
-                style="
-                    background-image: url('{{ isset($setting['background']) ? asset('storage/'.$setting['background']) : '' }}');
-                    background-size: cover;
-                    background-position: center;
-                 ">
+                <a href="{{ route('tv') }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    Buka Full Preview
+                </a>
+            </div>
 
-                @if(empty($setting['background']) && empty($activeVideoUrl))
-                <span class="preview-label">Preview Tampilan TV</span>
-                @endif
-
-                @if($activeVideoUrl)
-                <video class="dashboard-video-preview" autoplay muted loop playsinline>
-                    <source src="{{ $activeVideoUrl }}" type="video/mp4">
-                </video>
-                @endif
-
-                <div class="running-text-preview">
-                    {{ $setting['running_text'] ?? 'Running text belum diisi' }}
+            <div class="preview-frame-shell">
+                <div class="preview-frame-scale">
+                    <iframe
+                        src="{{ route('tv') }}"
+                        title="Preview TV"
+                        class="preview-frame"
+                        loading="lazy"></iframe>
                 </div>
-
             </div>
 
         </div>

@@ -30,20 +30,26 @@ return new class extends Migration
             }
         });
 
-        DB::table('agendas')
-            ->whereNull('date')
-            ->whereNotNull('agenda_date')
-            ->update(['date' => DB::raw('agenda_date')]);
+        if (Schema::hasColumn('agendas', 'agenda_date')) {
+            DB::table('agendas')
+                ->whereNull('date')
+                ->whereNotNull('agenda_date')
+                ->update(['date' => DB::raw('agenda_date')]);
+        }
 
-        DB::table('agendas')
-            ->whereNull('time')
-            ->whereNotNull('agenda_time')
-            ->update(['time' => DB::raw('agenda_time')]);
+        if (Schema::hasColumn('agendas', 'agenda_time')) {
+            DB::table('agendas')
+                ->whereNull('time')
+                ->whereNotNull('agenda_time')
+                ->update(['time' => DB::raw('agenda_time')]);
+        }
 
-        DB::table('agendas')
-            ->whereNull('name')
-            ->whereNotNull('title')
-            ->update(['name' => DB::raw('title')]);
+        if (Schema::hasColumn('agendas', 'title')) {
+            DB::table('agendas')
+                ->whereNull('name')
+                ->whereNotNull('title')
+                ->update(['name' => DB::raw('title')]);
+        }
     }
 
     /**

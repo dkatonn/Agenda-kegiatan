@@ -53,6 +53,11 @@
                     Agenda
                 </a>
 
+                <a href="{{ route('admin.admins') }}" class="{{ request()->routeIs('admin.admins*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock"></i>
+                    Admin
+                </a>
+
             </nav>
 
         </aside>
@@ -87,7 +92,7 @@
                 </div>
                 @endif
 
-                @if($errors->any())
+                @if($errors->any() && !View::hasSection('suppressGlobalErrors'))
                 <div class="alert alert-danger">
                     {{ $errors->first() }}
                 </div>

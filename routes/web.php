@@ -8,6 +8,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\AdminUserController;
 
 
 /* TV DISPLAY */
@@ -30,6 +31,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 
+    Route::get('/admins', [AdminUserController::class, 'index'])->name('admins');
+
     Route::get('/setting', [SettingController::class, 'index'])->name('setting');
 
 
@@ -49,6 +52,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/agenda/{id}', [AgendaController::class, 'update'])->name('agenda.update');
 
     Route::delete('/agenda/{id}', [AgendaController::class, 'destroy'])->name('agenda.delete');
+
+
+    // CRUD ADMIN
+
+    Route::post('/admins', [AdminUserController::class, 'store'])->name('admins.store');
+
+    Route::put('/admins/{id}', [AdminUserController::class, 'update'])->name('admins.update');
+
+    Route::delete('/admins/{id}', [AdminUserController::class, 'destroy'])->name('admins.delete');
 
 
     // CRUD VIDEO

@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
     {
         User::query()->firstOrCreate(
             ['email' => 'admin@agenda.test'],
-            ['name' => 'Admin Agenda', 'password' => bcrypt('password')]
+            ['nip' => '198501012010011001', 'name' => 'Admin Agenda', 'password' => bcrypt('password')]
         );
 
         foreach ([
