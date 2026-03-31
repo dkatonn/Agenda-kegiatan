@@ -9,6 +9,9 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserSettingController;
+use App\Http\Controllers\Auth\AdminAuthController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 
 /* TV DISPLAY */
@@ -48,6 +51,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/teks-berjalan', [SettingController::class, 'index'])->name('running-text');
 
     Route::get('/user-settings', [UserSettingController::class, 'index'])->name('user-settings');
+    Route::post('/user-settings', [UserSettingController::class, 'store'])->name('user-settings.store');
+    Route::put('/user-settings/{id}', [UserSettingController::class, 'update'])->name('user-settings.update');
+    Route::patch('/user-settings/{id}/toggle', [UserSettingController::class, 'toggle'])->name('user-settings.toggle');
+    Route::delete('/user-settings/{id}', [UserSettingController::class, 'destroy'])->name('user-settings.delete');
+    Route::get('/password', [UserSettingController::class, 'editPassword'])->name('password.edit');
+    Route::put('/password', [UserSettingController::class, 'updatePassword'])->name('password.update');
 
 
     // CRUD EMPLOYEE
@@ -66,16 +75,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/agenda/{id}', [AgendaController::class, 'update'])->name('agenda.update');
 
     Route::delete('/agenda/{id}', [AgendaController::class, 'destroy'])->name('agenda.delete');
-
-
-    // CRUD ADMIN
-
-    Route::post('/admins', [AdminUserController::class, 'store'])->name('admins.store');
-
-    Route::put('/admins/{id}', [AdminUserController::class, 'update'])->name('admins.update');
-
-    Route::delete('/admins/{id}', [AdminUserController::class, 'destroy'])->name('admins.delete');
-
 
     // CRUD VIDEO
 

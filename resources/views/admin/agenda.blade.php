@@ -34,17 +34,17 @@
         <div class="panel-meta">Total {{ $agenda->count() }} agenda aktif di sistem.</div>
         <div class="table-controls">
             <label class="table-control-inline">
-                <span>Show</span>
+                <span>Tampilkan</span>
                 <select class="form-select form-select-sm table-page-size">
                     <option value="5">5</option>
                     <option value="10" selected>10</option>
                     <option value="25">25</option>
                 </select>
-                <span>entries</span>
+                <span>data</span>
             </label>
 
             <label class="table-control-search">
-                <span>Search:</span>
+                <span>Cari:</span>
                 <input type="text" class="form-control form-control-sm table-search-input" placeholder="Cari agenda...">
             </label>
         </div>
@@ -122,9 +122,9 @@
         <div class="table-footer">
             <div class="table-info"></div>
             <div class="table-pagination">
-                <button type="button" class="btn btn-light btn-sm table-prev">Prev</button>
+                <button type="button" class="btn btn-light btn-sm table-prev">Sebelumnya</button>
                 <span class="table-page-indicator">1</span>
-                <button type="button" class="btn btn-light btn-sm table-next">Next</button>
+                <button type="button" class="btn btn-light btn-sm table-next">Berikutnya</button>
             </div>
         </div>
     </div>

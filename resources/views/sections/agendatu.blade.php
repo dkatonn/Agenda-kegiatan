@@ -15,6 +15,12 @@
         <div class="agenda-head-time">Jam</div>
     </div>
 
+    @if($agendaTuPinned->isEmpty() && $agendaTuSlides->isEmpty())
+    <div class="agenda-empty-state">
+        Data agenda Tata Usaha belum tersedia silahkan periksa koneksi atau memang belum ada data.
+    </div>
+    @endif
+
     @foreach($agendaTuPinned as $agenda)
     @php
         $agendaDate = \Carbon\Carbon::parse($agenda->date)->startOfDay();

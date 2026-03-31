@@ -39,7 +39,7 @@
                 </div>
                 <div class="logo-text">
                     <strong>TV Agenda</strong>
-                    <span>Control Center</span>
+                    <span>Pusat Kendali</span>
                 </div>
             </div>
 
@@ -72,14 +72,9 @@
                     <span>Teks Berjalan</span>
                 </a>
 
-                <a href="{{ route('admin.user-settings') }}" class="{{ request()->routeIs('admin.user-settings*') ? 'active' : '' }}">
+                <a href="{{ route('admin.user-settings') }}" class="{{ request()->routeIs('admin.user-settings*') || request()->routeIs('admin.password.*') ? 'active' : '' }}">
                     <i class="bi bi-person-gear"></i>
-                    <span>User Settings</span>
-                </a>
-
-                <a href="{{ route('admin.admins') }}" class="{{ request()->routeIs('admin.admins*') ? 'active' : '' }}">
-                    <i class="bi bi-shield-lock"></i>
-                    Admin
+                    <span>Pengaturan Admin</span>
                 </a>
 
             </nav>
@@ -121,7 +116,7 @@
             <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center">
                 <div class="topbar-copy">
-                    <div class="topbar-eyebrow">Admin Panel</div>
+                    <div class="topbar-eyebrow">Panel Admin</div>
                     <h5 class="mb-0">@yield('title')</h5>
                 </div>
 
@@ -135,16 +130,19 @@
 
                         <ul class="dropdown-menu dropdown-menu-end topbar-user-menu">
                             <li>
-                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#comingSoonAccountModal">
+                                <a href="{{ route('admin.password.edit') }}" class="dropdown-item">
                                     <i class="bi bi-key"></i>
-                                    Ganti Password
-                                </button>
+                                    Ubah Kata Sandi
+                                </a>
                             </li>
                             <li>
-                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#comingSoonAccountModal">
-                                    <i class="bi bi-box-arrow-right"></i>
-                                    Logout
-                                </button>
+                                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        Keluar
+                                    </button>
+                                </form>
                             </li>
                         </ul>
                     </div>
@@ -182,7 +180,7 @@
                     <div class="delete-confirm-icon">
                         <i class="bi bi-exclamation-triangle"></i>
                     </div>
-                    <h5 class="delete-confirm-title">Konfirmasi Penghapusan</h5>
+                    <h5 class="delete-confirm-title">Konfirmasi Aksi</h5>
                     <p class="delete-confirm-message js-delete-confirm-message">
                         Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
                     </p>
@@ -190,25 +188,6 @@
                 <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-danger-soft delete-confirm-submit js-delete-confirm-submit">Ya, hapus</button>
                     <button type="button" class="btn btn-light delete-confirm-cancel" data-bs-dismiss="modal">Tidak</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="comingSoonAccountModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content delete-confirm-modal">
-                <div class="modal-body text-center">
-                    <div class="delete-confirm-icon account-coming-soon-icon">
-                        <i class="bi bi-person-gear"></i>
-                    </div>
-                    <h5 class="delete-confirm-title">Fitur Segera Hadir</h5>
-                    <p class="delete-confirm-message">
-                        Menu akun untuk ganti password dan logout akan diaktifkan setelah modul user dan database-nya selesai disiapkan.
-                    </p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Mengerti</button>
                 </div>
             </div>
         </div>
@@ -265,9 +244,9 @@
 
                     if (info) {
                         if (totalRows === 0) {
-                            info.textContent = 'Showing 0 to 0 of 0 entries';
+                            info.textContent = 'Menampilkan 0 sampai 0 dari 0 data';
                         } else {
-                            info.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalRows} entries`;
+                            info.textContent = `Menampilkan ${startIndex + 1} sampai ${endIndex} dari ${totalRows} data`;
                         }
                     }
 
@@ -319,7 +298,7 @@
             const confirmModal = confirmModalElement ? new bootstrap.Modal(confirmModalElement) : null;
             let pendingAction = null;
 
-            const openDeleteConfirm = (message, onConfirm) => {
+            const openDeleteConfirm = (message, onConfirm, confirmLabel = 'Ya, hapus') => {
                 if (!confirmModal || !confirmMessageElement || !confirmSubmitButton) {
                     if (window.confirm(message)) {
                         onConfirm();
@@ -329,6 +308,7 @@
 
                 pendingAction = onConfirm;
                 confirmMessageElement.textContent = message;
+                confirmSubmitButton.textContent = confirmLabel;
                 confirmModal.show();
             };
 
@@ -350,6 +330,7 @@
                     event.preventDefault();
 
                     const message = form.dataset.confirmMessage || 'Apakah Anda yakin ingin menghapus data ini?';
+                    const confirmLabel = form.dataset.confirmActionLabel || 'Ya, hapus';
                     openDeleteConfirm(message, () => {
                         if (form.dataset.ajaxSubmit === 'true') {
                             form.dispatchEvent(new CustomEvent('ajax-confirmed-submit', { bubbles: true }));
@@ -357,7 +338,7 @@
                         }
 
                         form.submit();
-                    });
+                    }, confirmLabel);
                 });
             });
 
@@ -367,6 +348,7 @@
 
                     const message = button.dataset.confirmSubmit || 'Apakah Anda yakin ingin melanjutkan aksi ini?';
                     const form = button.form;
+                    const confirmLabel = button.dataset.confirmActionLabel || 'Ya, lanjutkan';
 
                     openDeleteConfirm(message, () => {
                         if (form) {
@@ -383,7 +365,7 @@
                                 hiddenInput.remove();
                             }
                         }
-                    });
+                    }, confirmLabel);
                 });
             });
         });

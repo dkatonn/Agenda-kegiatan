@@ -15,6 +15,16 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nip' => ['nullable', 'digits:18', 'unique:employees,nip'],
+            'role' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image'],
+        ], [
+            'nip.digits' => 'NIP pegawai harus terdiri dari tepat 18 digit angka.',
+            'nip.unique' => 'NIP pegawai ini sudah digunakan.',
+        ]);
+
         $path = null;
 
         if ($request->hasFile('image')) {
@@ -22,8 +32,9 @@ class EmployeeController extends Controller
         }
 
         Employee::create([
-            'name' => $request->name,
-            'role' => $request->role,
+            'name' => $validated['name'],
+            'nip' => $validated['nip'] ?? null,
+            'role' => $validated['role'],
             'image_path' => $path
         ]);
 
@@ -33,6 +44,15 @@ class EmployeeController extends Controller
     public function update(Request $request, $id)
     {
         $emp = Employee::findOrFail($id);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nip' => ['nullable', 'digits:18', 'unique:employees,nip,' . $emp->id],
+            'role' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image'],
+        ], [
+            'nip.digits' => 'NIP pegawai harus terdiri dari tepat 18 digit angka.',
+            'nip.unique' => 'NIP pegawai ini sudah digunakan.',
+        ]);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('employee', 'public');
@@ -40,8 +60,9 @@ class EmployeeController extends Controller
         }
 
         $emp->update([
-            'name' => $request->name,
-            'role' => $request->role
+            'name' => $validated['name'],
+            'nip' => $validated['nip'] ?? null,
+            'role' => $validated['role']
         ]);
 
         return back();

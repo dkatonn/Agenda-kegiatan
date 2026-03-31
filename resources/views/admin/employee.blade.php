@@ -24,17 +24,17 @@
         <div class="panel-meta">Total {{ $employee->count() }} pegawai tersimpan.</div>
         <div class="table-controls">
             <label class="table-control-inline">
-                <span>Show</span>
+                <span>Tampilkan</span>
                 <select class="form-select form-select-sm table-page-size">
                     <option value="5">5</option>
                     <option value="10" selected>10</option>
                     <option value="25">25</option>
                 </select>
-                <span>entries</span>
+                <span>data</span>
             </label>
 
             <label class="table-control-search">
-                <span>Search:</span>
+                <span>Cari:</span>
                 <input type="text" class="form-control form-control-sm table-search-input" placeholder="Cari pegawai...">
             </label>
         </div>
@@ -47,6 +47,7 @@
                 <tr>
                     <th>Foto</th>
                     <th>Nama</th>
+                    <th>NIP</th>
                     <th>Jabatan</th>
                     <th>Aksi</th>
                 </tr>
@@ -65,6 +66,7 @@
                     </td>
 
                     <td>{{ $emp->name }}</td>
+                    <td>{{ $emp->nip ?? '-' }}</td>
                     <td>{{ $emp->role }}</td>
 
                     <td>
@@ -96,9 +98,9 @@
         <div class="table-footer">
             <div class="table-info"></div>
             <div class="table-pagination">
-                <button type="button" class="btn btn-light btn-sm table-prev">Prev</button>
+                <button type="button" class="btn btn-light btn-sm table-prev">Sebelumnya</button>
                 <span class="table-page-indicator">1</span>
-                <button type="button" class="btn btn-light btn-sm table-next">Next</button>
+                <button type="button" class="btn btn-light btn-sm table-next">Berikutnya</button>
             </div>
         </div>
     </div>
@@ -130,6 +132,11 @@
                         <div class="mb-3">
                             <label class="form-label">Nama</label>
                             <input type="text" name="name" class="form-control" value="{{ $emp->name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">NIP</label>
+                            <input type="text" name="nip" class="form-control" value="{{ $emp->nip }}" inputmode="numeric" maxlength="18">
                         </div>
 
                         <div class="mb-3">
@@ -178,6 +185,11 @@
                         <div class="mb-3">
                             <label class="form-label">Nama</label>
                             <input type="text" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">NIP</label>
+                            <input type="text" name="nip" class="form-control" inputmode="numeric" maxlength="18">
                         </div>
 
                         <div class="mb-3">

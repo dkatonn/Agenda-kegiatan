@@ -6,6 +6,7 @@ use App\Models\Agenda;
 use App\Models\Employee;
 use App\Models\Setting;
 use App\Models\Video;
+use App\Services\TataUsahaAgendaService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Storage;
 
 class TVController extends Controller
 {
+    public function __construct(protected TataUsahaAgendaService $tataUsahaAgendaService)
+    {
+    }
+
     protected int $agendaPerSlide = 7;
 
     public function index()
@@ -96,9 +101,7 @@ class TVController extends Controller
     protected function getTvViewData(): array
     {
         $settings = Setting::pluck('value', 'key')->toArray();
-        $activeVideo = Schema::hasTable('videos')
-            ? Video::query()->where('is_active', true)->latest()->first()
-            : null;
+        $activeVideo = $this->findActiveVideo();
 
         $settings['video'] = $activeVideo
             ? $this->resolveVideoUrlFromModel($activeVideo)
@@ -106,40 +109,12 @@ class TVController extends Controller
 
         $employees = Employee::latest()->get();
         $tvRevision = $this->getTvRevision();
-        $agendas = Agenda::query()
+        $agendaTu = $this->tataUsahaAgendaService->fetchAgenda(10);
+        $agendaData = Agenda::query()
             ->whereDate('date', '>=', now()->toDateString())
             ->orderBy('date')
             ->orderBy('time')
             ->get()
-            ->sortBy(function ($agenda) {
-                $agendaDate = Carbon::parse($agenda->date)->startOfDay();
-                $today = now()->startOfDay();
-                $tomorrow = now()->copy()->addDay()->startOfDay();
-
-                if ($agendaDate->equalTo($today)) {
-                    return '0-' . $agendaDate->format('Ymd') . '-' . $agenda->time;
-                }
-
-                if ($agendaDate->equalTo($tomorrow)) {
-                    return '1-' . $agendaDate->format('Ymd') . '-' . $agenda->time;
-                }
-
-                if ($agendaDate->greaterThan($tomorrow)) {
-                    return '2-' . $agendaDate->format('Ymd') . '-' . $agenda->time;
-                }
-
-                return '3-' . $agendaDate->format('Ymd') . '-' . $agenda->time;
-            })
-            ->values();
-
-        $agendaTu = $agendas
-            ->values()
-            ->filter(fn ($agenda, $index) => $index % 2 === 0)
-            ->values();
-
-        $agendaData = $agendas
-            ->values()
-            ->filter(fn ($agenda, $index) => $index % 2 === 1)
             ->values();
 
         ['pinned' => $agendaTuPinned, 'slides' => $agendaTuSlides] = $this->buildAgendaSlides($agendaTu);
@@ -161,6 +136,33 @@ class TVController extends Controller
             'agendaTuRemainingSlots',
             'agendaDataRemainingSlots'
         );
+    }
+
+    protected function findActiveVideo(): ?Video
+    {
+        if (! Schema::hasTable('videos')) {
+            return null;
+        }
+
+        $query = Video::query();
+
+        if (Schema::hasColumn('videos', 'is_active')) {
+            $activeVideo = (clone $query)->where('is_active', true)->latest('id')->first();
+
+            if ($activeVideo instanceof Video) {
+                return $activeVideo;
+            }
+        }
+
+        if (Schema::hasColumn('videos', 'sort_order')) {
+            $query->orderBy('sort_order');
+        }
+
+        if (Schema::hasColumn('videos', 'display_order')) {
+            $query->orderBy('display_order');
+        }
+
+        return $query->latest('id')->first();
     }
 
     protected function resolveVideoUrlFromModel(Video $video): ?string
@@ -187,14 +189,19 @@ class TVController extends Controller
         }
 
         if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->url($path);
+            return $this->publicStorageUrl($path);
         }
 
         $publicPrefixedPath = preg_replace('#^storage/#', '', ltrim($path, '/'));
         if (is_string($publicPrefixedPath) && Storage::disk('public')->exists($publicPrefixedPath)) {
-            return Storage::disk('public')->url($publicPrefixedPath);
+            return $this->publicStorageUrl($publicPrefixedPath);
         }
 
         return asset(ltrim($path, '/'));
+    }
+
+    protected function publicStorageUrl(string $path): string
+    {
+        return asset('storage/' . ltrim($path, '/'));
     }
 }

@@ -8,25 +8,29 @@ use Illuminate\Support\Facades\Log;
 
 class TataUsahaAgendaService
 {
-    public function fetchAgenda(int $limit = 6): Collection
+    public function fetchAgenda(int $limit = 10): Collection
     {
         $baseUrl = rtrim((string) config('services.tata_usaha_agenda.base_url'), '/');
         $token = (string) config('services.tata_usaha_agenda.token');
 
-        if ($baseUrl === '' || $token === '') {
+        if ($baseUrl === '') {
             return collect();
         }
 
         try {
-            $response = Http::withToken($token)
-                ->acceptJson()
+            $request = Http::acceptJson()
                 ->timeout((int) config('services.tata_usaha_agenda.timeout', 5))
-                ->get($baseUrl . '/api/agenda', [
-                    'include_past' => 1,
-                    'sort' => 'date_desc',
-                    'per_page' => $limit,
-                ])
-                ->throw();
+                ->retry(1, 250);
+
+            if ($token !== '') {
+                $request = $request->withToken($token);
+            }
+
+            $response = $request->get($baseUrl . '/api/agenda', [
+                'include_past' => 1,
+                'sort' => 'date_desc',
+                'per_page' => $limit,
+            ])->throw();
 
             $payload = $response->json('data', []);
 

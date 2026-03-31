@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class AdminAuthController extends Controller
@@ -22,6 +24,13 @@ class AdminAuthController extends Controller
         ]);
 
         $remember = $request->boolean('remember');
+        $user = User::query()->where('nip', $credentials['nip'])->first();
+
+        if ($user && Schema::hasColumn('users', 'is_active') && ! $user->is_active) {
+            throw ValidationException::withMessages([
+                'nip' => 'Akun admin ini sedang dinonaktifkan.',
+            ]);
+        }
 
         if (! Auth::attempt($credentials, $remember)) {
             throw ValidationException::withMessages([

@@ -1,6 +1,7 @@
 @extends('admin.layout')
 
-@section('title','User Settings')
+@section('title', 'Pengaturan Admin')
+@section('suppressGlobalErrors', '1')
 
 @section('content')
 
@@ -10,7 +11,7 @@
             <div class="section-eyebrow">Manajemen Admin</div>
             <h6 class="panel-title">
                 <i class="bi bi-person-gear"></i>
-                User Settings
+                Pengaturan Admin
             </h6>
         </div>
 
@@ -20,20 +21,20 @@
     </div>
 
     <div class="panel-toolbar table-toolbar">
-        <div class="panel-meta">Tampilan CRUD admin ini masih versi UI dan belum terhubung ke database.</div>
+        <div class="panel-meta">{{ $admins->count() }} admin terdaftar di sistem.</div>
         <div class="table-controls">
             <label class="table-control-inline">
-                <span>Show</span>
+                <span>Tampilkan</span>
                 <select class="form-select form-select-sm table-page-size">
                     <option value="5">5</option>
                     <option value="10" selected>10</option>
                     <option value="25">25</option>
                 </select>
-                <span>entries</span>
+                <span>data</span>
             </label>
 
             <label class="table-control-search">
-                <span>Search:</span>
+                <span>Cari:</span>
                 <input type="text" class="form-control form-control-sm table-search-input" placeholder="Cari admin...">
             </label>
         </div>
@@ -45,39 +46,47 @@
                 <tr>
                     <th>No.</th>
                     <th>Nama</th>
-                    <th>Username</th>
                     <th>NIP</th>
                     <th>Email</th>
-                    <th>Role</th>
                     <th>Status</th>
+                    <th>Dibuat</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
 
             <tbody>
-                @foreach($admins as $admin)
+                @forelse($admins as $admin)
+                @php
+                    $isActive = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_active') ? (bool) $admin->is_active : true;
+                @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $admin->name }}</td>
-                    <td>{{ $admin->username }}</td>
-                    <td>{{ $admin->nip }}</td>
+                    <td>{{ $admin->nip ?? '-' }}</td>
                     <td>{{ $admin->email }}</td>
-                    <td>{{ $admin->role }}</td>
                     <td>
-                        <span class="badge bg-success">{{ $admin->status }}</span>
+                        <span class="badge {{ $isActive ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $isActive ? 'Aktif' : 'Nonaktif' }}
+                        </span>
                     </td>
+                    <td>{{ optional($admin->created_at)->format('d M Y H:i') ?? '-' }}</td>
                     <td>
                         <div class="action-group">
-                            <button
-                                type="button"
-                                class="btn btn-sm admin-icon-btn {{ $admin->status === 'Aktif' ? 'btn-outline-secondary' : 'btn-outline-success' }}"
-                                data-bs-toggle="modal"
-                                data-bs-target="#comingSoonUserCrudModal"
-                                title="{{ $admin->status === 'Aktif' ? 'Nonaktifkan admin' : 'Aktifkan admin' }}"
-                                aria-label="{{ $admin->status === 'Aktif' ? 'Nonaktifkan admin' : 'Aktifkan admin' }}"
-                            >
-                                <i class="bi {{ $admin->status === 'Aktif' ? 'bi-pause-circle' : 'bi-play-circle' }}"></i>
-                            </button>
+                            <form action="{{ route('admin.user-settings.toggle', $admin->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('PATCH')
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm admin-icon-btn {{ $isActive ? 'btn-outline-secondary' : 'btn-outline-success' }}"
+                                    data-confirm-submit="{{ $isActive ? 'Nonaktifkan admin ini?' : 'Aktifkan kembali admin ini?' }}"
+                                    data-confirm-action-label="{{ $isActive ? 'Ya, nonaktifkan' : 'Ya, aktifkan' }}"
+                                    title="{{ $isActive ? 'Nonaktifkan admin' : 'Aktifkan admin' }}"
+                                    aria-label="{{ $isActive ? 'Nonaktifkan admin' : 'Aktifkan admin' }}"
+                                >
+                                    <i class="bi {{ $isActive ? 'bi-pause-circle' : 'bi-play-circle' }}"></i>
+                                </button>
+                            </form>
+
                             <button
                                 class="btn btn-sm btn-outline-primary admin-icon-btn"
                                 data-bs-toggle="modal"
@@ -87,142 +96,45 @@
                             >
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-danger admin-icon-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#comingSoonUserCrudModal"
-                                title="Hapus admin"
-                                aria-label="Hapus admin"
-                            >
-                                <i class="bi bi-trash3"></i>
-                            </button>
+
+                            <form action="{{ route('admin.user-settings.delete', $admin->id) }}" method="POST" class="d-inline js-confirm-delete" data-confirm-message="Hapus admin ini?">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger admin-icon-btn" title="Hapus admin" aria-label="Hapus admin">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="7" class="text-center text-muted">Belum ada admin yang tersimpan.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
 
         <div class="table-footer">
             <div class="table-info"></div>
             <div class="table-pagination">
-                <button type="button" class="btn btn-light btn-sm table-prev">Prev</button>
+                <button type="button" class="btn btn-light btn-sm table-prev">Sebelumnya</button>
                 <span class="table-page-indicator">1</span>
-                <button type="button" class="btn btn-light btn-sm table-next">Next</button>
+                <button type="button" class="btn btn-light btn-sm table-next">Berikutnya</button>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="admin-card">
-    <div class="info-box">
-        <strong>Catatan:</strong> halaman ini baru menyiapkan tampilan CRUD admin. Nanti saat tabel user/admin sudah tersedia, form dan aksinya tinggal disambungkan ke backend.
-    </div>
-</div>
-
-<div class="modal fade" id="createAdminModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content admin-form-modal">
-            <form>
-                <div class="modal-header">
-                    <div>
-                        <div class="modal-eyebrow">Setup Akun</div>
-                        <h5 class="modal-title">Tambah Admin</h5>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="form-section-note">
-                        Rancang data akun admin dari sisi UI terlebih dahulu. Saat backend siap, struktur ini tinggal disambungkan ke database.
-                    </div>
-
-                    <div class="admin-form-grid admin-form-grid-2">
-                        <div class="mb-3">
-                            <label class="form-label">Nama</label>
-                            <input type="text" class="form-control" placeholder="Masukkan nama admin">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" placeholder="Masukkan username">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">NIP</label>
-                            <input type="text" class="form-control" placeholder="Masukkan NIP">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="Masukkan email">
-                        </div>
-                    </div>
-
-                    <div class="admin-form-grid admin-form-grid-2">
-                        <div class="mb-3">
-                            <label class="form-label">Role</label>
-                            <select class="form-select">
-                                <option>Super Admin</option>
-                                <option>Operator</option>
-                                <option>Editor</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="admin-form-divider">Pengaturan Password</div>
-
-                    <div class="admin-form-grid admin-form-grid-2">
-                        <div class="mb-3">
-                            <label class="form-label">Password Lama</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Masukkan password lama">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Password Baru</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Masukkan password baru">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Konfirmasi Password Baru</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Ulangi password baru">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Saat backend aktif, password baru akan di-hash di server sebelum disimpan.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#comingSoonUserCrudModal">
-                        Simpan
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 
 @foreach($admins as $admin)
 <div class="modal fade" id="editAdminModal{{ $admin->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content admin-form-modal">
-            <form>
+            <form action="{{ route('admin.user-settings.update', $admin->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="form_context" value="edit-admin-{{ $admin->id }}">
+
                 <div class="modal-header">
                     <div>
                         <div class="modal-eyebrow">Update Akun</div>
@@ -232,84 +144,57 @@
                 </div>
 
                 <div class="modal-body">
-                    <div class="form-section-note">
-                        Perbarui detail akun admin. Nantinya perubahan ini akan terhubung ke proses autentikasi saat backend sudah aktif.
+                    @if(old('form_context') === 'edit-admin-'.$admin->id && $errors->any())
+                    <div class="alert alert-danger">
+                        {{ $errors->first() }}
                     </div>
+                    @endif
 
                     <div class="admin-form-grid admin-form-grid-2">
                         <div class="mb-3">
                             <label class="form-label">Nama</label>
-                            <input type="text" class="form-control" value="{{ $admin->name }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" value="{{ $admin->username }}">
+                            <input type="text" name="name" class="form-control" value="{{ old('form_context') === 'edit-admin-'.$admin->id ? old('name', $admin->name) : $admin->name }}" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">NIP</label>
-                            <input type="text" class="form-control" value="{{ $admin->nip }}">
+                            <input type="text" name="nip" class="form-control" value="{{ old('form_context') === 'edit-admin-'.$admin->id ? old('nip', $admin->nip) : $admin->nip }}" inputmode="numeric" maxlength="18" data-nip-input required>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3 admin-form-grid-full">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control" value="{{ $admin->email }}">
+                            <input type="email" name="email" class="form-control" value="{{ old('form_context') === 'edit-admin-'.$admin->id ? old('email', $admin->email) : $admin->email }}" required>
                         </div>
                     </div>
 
-                    <div class="admin-form-grid admin-form-grid-2">
-                        <div class="mb-3">
-                            <label class="form-label">Role</label>
-                            <select class="form-select">
-                                <option {{ $admin->role === 'Super Admin' ? 'selected' : '' }}>Super Admin</option>
-                                <option {{ $admin->role === 'Operator' ? 'selected' : '' }}>Operator</option>
-                                <option {{ $admin->role === 'Editor' ? 'selected' : '' }}>Editor</option>
-                            </select>
+                    <div class="admin-form-divider">Ubah Kata Sandi</div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Kata Sandi Baru</label>
+                        <div class="input-group password-toggle-group">
+                            <input type="password" name="password" class="form-control" data-password-input placeholder="Kosongkan jika tidak diubah">
+                            <button class="btn btn-outline-secondary" type="button" data-password-toggle>
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
+                        <small class="text-muted d-block mt-2">Kata sandi minimal 8 karakter dan menggunakan satu karakter spesial: . ! @ # $ % ^ &amp; *</small>
                     </div>
 
-                    <div class="admin-form-divider">Pengaturan Password</div>
-
-                    <div class="admin-form-grid admin-form-grid-2">
-                        <div class="mb-3">
-                            <label class="form-label">Password Lama</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Masukkan password lama">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
+                    <div class="mb-0">
+                        <label class="form-label">Konfirmasi Kata Sandi Baru</label>
+                        <div class="input-group password-toggle-group">
+                            <input type="password" name="password_confirmation" class="form-control" data-password-input data-password-confirmation placeholder="Ulangi kata sandi baru">
+                            <button class="btn btn-outline-secondary" type="button" data-password-toggle>
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Password Baru</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Masukkan password baru">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Konfirmasi Password Baru</label>
-                            <div class="password-input-shell">
-                                <input type="password" class="form-control password-toggle-input" placeholder="Ulangi password baru">
-                                <button type="button" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Saat backend aktif, password baru akan di-hash di server sebelum disimpan.</small>
-                        </div>
+                        <small class="text-danger d-none" data-password-match></small>
                     </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#comingSoonUserCrudModal">
-                        Simpan Perubahan
-                    </button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -317,44 +202,142 @@
 </div>
 @endforeach
 
-<div class="modal fade" id="comingSoonUserCrudModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content delete-confirm-modal">
-            <div class="modal-body text-center">
-                <div class="delete-confirm-icon account-coming-soon-icon">
-                    <i class="bi bi-database-gear"></i>
+<div class="modal fade" id="createAdminModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content admin-form-modal">
+            <form action="{{ route('admin.user-settings.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="form_context" value="create-admin">
+
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-eyebrow">Tambah Admin</div>
+                        <h5 class="modal-title">Admin Baru</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <h5 class="delete-confirm-title">CRUD Admin Belum Aktif</h5>
-                <p class="delete-confirm-message">
-                    Tampilan halaman ini sudah siap. Aksi tambah, edit, dan hapus admin akan diaktifkan setelah tabel database dan backend-nya selesai dibuat.
-                </p>
-            </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Mengerti</button>
-            </div>
+
+                <div class="modal-body">
+                    @if(old('form_context') === 'create-admin' && $errors->any())
+                    <div class="alert alert-danger">
+                        {{ $errors->first() }}
+                    </div>
+                    @endif
+
+                    <div class="admin-form-grid admin-form-grid-2">
+                        <div class="mb-3">
+                            <label class="form-label">Nama</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('form_context') === 'create-admin' ? old('name') : '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">NIP</label>
+                            <input type="text" name="nip" class="form-control" value="{{ old('form_context') === 'create-admin' ? old('nip') : '' }}" inputmode="numeric" maxlength="18" data-nip-input required>
+                        </div>
+
+                        <div class="mb-3 admin-form-grid-full">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ old('form_context') === 'create-admin' ? old('email') : '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-divider">Kata Sandi Awal</div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Kata Sandi</label>
+                        <div class="input-group password-toggle-group">
+                            <input type="password" name="password" class="form-control" data-password-input required>
+                            <button class="btn btn-outline-secondary" type="button" data-password-toggle>
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-2">Kata sandi minimal 8 karakter dan menggunakan satu karakter spesial: . ! @ # $ % ^ &amp; *</small>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label">Konfirmasi Kata Sandi</label>
+                        <div class="input-group password-toggle-group">
+                            <input type="password" name="password_confirmation" class="form-control" data-password-input data-password-confirmation required>
+                            <button class="btn btn-outline-secondary" type="button" data-password-toggle>
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-danger d-none" data-password-match></small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.password-toggle-btn').forEach((button) => {
-            button.addEventListener('click', () => {
-                const shell = button.closest('.password-input-shell');
-                const input = shell?.querySelector('.password-toggle-input');
-                const icon = button.querySelector('i');
-
-                if (!input || !icon) return;
-
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-                icon.className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
-                button.setAttribute('aria-label', isHidden ? 'Sembunyikan password' : 'Tampilkan password');
-            });
+    document.querySelectorAll('[data-nip-input]').forEach(function(input) {
+        input.addEventListener('input', function() {
+            input.value = input.value.replace(/\D/g, '').slice(0, 18);
         });
     });
+
+    document.querySelectorAll('[data-password-toggle]').forEach(function(toggleButton) {
+        toggleButton.addEventListener('click', function() {
+            const wrapper = toggleButton.closest('.password-toggle-group');
+            const input = wrapper.querySelector('[data-password-input]');
+            const isPassword = input.getAttribute('type') === 'password';
+
+            input.setAttribute('type', isPassword ? 'text' : 'password');
+            toggleButton.innerHTML = isPassword
+                ? '<i class="bi bi-eye-slash"></i>'
+                : '<i class="bi bi-eye"></i>';
+        });
+    });
+
+    document.querySelectorAll('.modal-content form').forEach(function(form) {
+        const passwordInput = form.querySelector('input[name="password"]');
+        const passwordConfirmationInput = form.querySelector('[data-password-confirmation]');
+        const passwordMatchStatus = form.querySelector('[data-password-match]');
+
+        if (!passwordInput || !passwordConfirmationInput || !passwordMatchStatus) {
+            return;
+        }
+
+        const updatePasswordMatch = function() {
+            const password = passwordInput.value;
+            const confirmation = passwordConfirmationInput.value;
+
+            if (!confirmation || password === confirmation) {
+                passwordMatchStatus.textContent = '';
+                passwordMatchStatus.className = 'text-danger d-none';
+                return;
+            }
+
+            passwordMatchStatus.textContent = 'Konfirmasi kata sandi tidak sama.';
+            passwordMatchStatus.className = 'text-danger';
+        };
+
+        passwordInput.addEventListener('input', updatePasswordMatch);
+        passwordConfirmationInput.addEventListener('input', updatePasswordMatch);
+        updatePasswordMatch();
+    });
+
+    const formContext = @json(old('form_context'));
+
+    if (formContext) {
+        const modalId = formContext === 'create-admin'
+            ? 'createAdminModal'
+            : 'editAdminModal' + formContext.replace('edit-admin-', '');
+        const modalElement = document.getElementById(modalId);
+
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
 </script>
 @endpush
-
-@endsection

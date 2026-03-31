@@ -14,6 +14,10 @@ body {
         linear-gradient(180deg, #f7faff 0%, #eef3f9 100%);
 }
 
+body.auth-page {
+    overflow: auto;
+}
+
 :root {
     --admin-navy: #123a72;
     --admin-navy-deep: #0b2852;
@@ -1029,6 +1033,10 @@ video {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.admin-form-grid-full {
+    grid-column: 1 / -1;
+}
+
 .form-section-note {
     margin-bottom: 18px;
     padding: 14px 16px;
@@ -1140,6 +1148,187 @@ small.text-muted {
     border-radius: 16px;
     border: none;
     box-shadow: var(--admin-shadow);
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(320px, 1.1fr) minmax(360px, 520px);
+    align-items: center;
+    gap: 28px;
+    padding: 40px;
+}
+
+.auth-showcase {
+    position: relative;
+    padding: 42px;
+    border-radius: 32px;
+    color: #fff;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 24%),
+        linear-gradient(135deg, rgba(18, 58, 114, 0.98) 0%, rgba(25, 92, 171, 0.96) 62%, rgba(43, 135, 152, 0.92) 100%);
+    box-shadow: 0 30px 60px rgba(11, 40, 82, 0.24);
+}
+
+.auth-showcase::after {
+    content: '';
+    position: absolute;
+    inset: auto -80px -100px auto;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: rgba(244, 195, 22, 0.18);
+    filter: blur(10px);
+}
+
+.auth-showcase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.14);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.auth-showcase h1 {
+    max-width: 620px;
+    margin: 0 0 14px;
+    font-size: 44px;
+    line-height: 1.15;
+    font-weight: 700;
+}
+
+.auth-showcase p {
+    max-width: 620px;
+    margin: 0 0 28px;
+    font-size: 16px;
+    line-height: 1.9;
+    color: rgba(255,255,255,0.84);
+}
+
+.auth-showcase-points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.auth-showcase-point {
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+}
+
+.auth-showcase-point strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.auth-showcase-point span {
+    display: block;
+    font-size: 13px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.82);
+}
+
+.auth-card {
+    padding: 34px;
+    border-radius: 28px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(255,255,255,0.82);
+    box-shadow: 0 26px 54px rgba(15, 23, 42, 0.14);
+    backdrop-filter: blur(12px);
+}
+
+.auth-brand {
+    margin-bottom: 24px;
+}
+
+.auth-kicker {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--admin-muted);
+}
+
+.auth-brand h2 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #10233f;
+}
+
+.auth-brand p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--admin-muted);
+}
+
+.auth-alert {
+    margin-bottom: 18px;
+}
+
+.auth-form {
+    display: grid;
+    gap: 18px;
+}
+
+.auth-field {
+    margin: 0;
+}
+
+.auth-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.auth-link {
+    color: #1d4c8c;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-link:hover,
+.auth-link:focus {
+    color: #153f78;
+    text-decoration: underline;
+}
+
+.auth-submit {
+    width: 100%;
+    min-height: 52px;
+}
+
+.auth-footer-link {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.password-toggle-group .btn {
+    border-color: var(--admin-border);
+    background: #eef4fb;
+    color: #32527b;
+}
+
+.password-toggle-group .btn:hover,
+.password-toggle-group .btn:focus {
+    background: #e2ecfa;
+    color: #17345f;
 }
 
 .badge {
@@ -1321,6 +1510,23 @@ small.text-muted {
     .dashboard-hero {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .auth-shell {
+        grid-template-columns: 1fr;
+        padding: 24px;
+    }
+
+    .auth-showcase {
+        padding: 28px;
+    }
+
+    .auth-showcase h1 {
+        font-size: 34px;
+    }
+
+    .auth-showcase-points {
+        grid-template-columns: 1fr;
     }
 }
 

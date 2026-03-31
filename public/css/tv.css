@@ -169,6 +169,14 @@ body{
     margin-bottom:6px;
 }
 
+.profile-nip{
+    font-size:14px;
+    font-weight:600;
+    color:#355070;
+    margin-bottom:6px;
+    letter-spacing:0.2px;
+}
+
 /* ROLE */
 
 .profile-role{
@@ -722,6 +730,10 @@ body {
     font-size: 25px;
 }
 
+.profile-nip {
+    font-size: 13px;
+}
+
 .profile-role {
     font-size: 14px;
 }
@@ -920,3 +932,4 @@ body {
 .agenda-content {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
 }
+
