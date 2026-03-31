@@ -21,7 +21,7 @@
         <thead>
             <tr>
                 <th>NIP</th>
-                <th>Email Sistem</th>
+                <th>Email</th>
                 <th>Dibuat</th>
                 <th>Aksi</th>
             </tr>
@@ -88,6 +88,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('form_context') === 'edit-admin-'.$admin->id ? old('email', $admin->email) : $admin->email }}" required>
+                        <small class="text-muted d-block mt-2">Gunakan email aktif dan valid untuk persiapan fitur reset password.</small>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Password Baru</label>
                         <div class="input-group password-toggle-group">
                             <input type="password" name="password" class="form-control" data-password-input placeholder="Kosongkan jika tidak diubah">
@@ -149,6 +155,12 @@
                             <small class="text-muted">NIP wajib 18 digit.</small>
                             <small class="text-muted"><span data-nip-counter>0</span>/18</small>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('form_context') === 'create-admin' ? old('email') : '' }}" required>
+                        <small class="text-muted d-block mt-2">Gunakan email aktif dan valid untuk persiapan fitur reset password.</small>
                     </div>
 
                     <div class="mb-3">

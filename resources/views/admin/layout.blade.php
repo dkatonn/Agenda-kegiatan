@@ -70,10 +70,20 @@
             <header class="topbar d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@yield('title')</h5>
 
-                <a href="{{ route('tv') }}" target="_blank" class="btn btn-primary btn-sm">
-                    <i class="bi bi-tv"></i>
-                    Preview TV
-                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('tv') }}" target="_blank" class="btn btn-primary btn-sm">
+                        <i class="bi bi-tv"></i>
+                        Preview TV
+                    </a>
+
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
             </header>
 
 

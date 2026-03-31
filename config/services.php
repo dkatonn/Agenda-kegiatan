@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'tata_usaha_agenda' => [
+        'base_url' => env('TATA_USAHA_API_BASE_URL'),
+        'token' => env('TATA_USAHA_API_TOKEN'),
+        'timeout' => env('TATA_USAHA_API_TIMEOUT', 5),
+    ],
+
 ];

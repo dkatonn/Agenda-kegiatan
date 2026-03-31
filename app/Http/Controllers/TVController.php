@@ -5,21 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\Agenda;
 use App\Models\Employee;
 use App\Models\Setting;
+use App\Services\TataUsahaAgendaService;
 
 class TVController extends Controller
 {
-    public function index()
+    public function index(TataUsahaAgendaService $tataUsahaAgendaService)
     {
         $settings = Setting::pluck('value', 'key')->toArray();
         $employees = Employee::latest()->get();
-        $agendas = Agenda::query()
+        $localAgendas = Agenda::query()
             ->orderBy('date')
             ->orderBy('time')
             ->get();
 
-        $agendaChunks = $agendas->chunk(6);
-        $agendaTu = $agendaChunks->get(0, collect());
-        $agendaData = $agendaChunks->get(1, collect());
+        $agendaTu = $tataUsahaAgendaService->fetchAgenda(6);
+
+        if ($agendaTu->isEmpty()) {
+            $agendaTu = $localAgendas->take(6)->values();
+        }
+
+        $agendaData = $localAgendas->take(6)->values();
 
         return view('tv', compact('settings', 'employees', 'agendaTu', 'agendaData'));
     }

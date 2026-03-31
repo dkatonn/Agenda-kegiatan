@@ -9,16 +9,31 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\Auth\AdminAuthController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 
 /* TV DISPLAY */
 
 Route::get('/', [TVController::class, 'index'])->name('tv');
 
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AdminAuthController::class, 'create'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'store'])->name('login.store');
+
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
+
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
+});
+
+Route::post('/logout', [AdminAuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
 /* ADMIN */
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/', [AdminController::class, 'index'])->name('index');
 

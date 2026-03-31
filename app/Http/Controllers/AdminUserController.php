@@ -19,10 +19,13 @@ class AdminUserController extends Controller
     {
         $validated = $request->validate([
             'nip' => ['required', 'digits:18', 'unique:users,nip'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'regex:/[.!@#$%^&*]/', 'confirmed'],
         ], [
             'nip.digits' => 'NIP harus terdiri dari tepat 18 digit angka.',
             'nip.unique' => 'NIP ini sudah digunakan oleh admin lain.',
+            'email.email' => 'Email harus menggunakan format yang valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh admin lain.',
             'password.confirmed' => 'Validasi password tidak cocok.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.regex' => 'Password minimal menggunakan satu karakter spesial: . ! @ # $ % ^ & *',
@@ -31,7 +34,7 @@ class AdminUserController extends Controller
         User::query()->create([
             'nip' => $validated['nip'],
             'name' => 'Admin ' . $validated['nip'],
-            'email' => $this->buildEmailFromNip($validated['nip']),
+            'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -44,10 +47,13 @@ class AdminUserController extends Controller
 
         $validated = $request->validate([
             'nip' => ['required', 'digits:18', 'unique:users,nip,' . $admin->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $admin->id],
             'password' => ['nullable', 'string', 'min:8', 'regex:/[.!@#$%^&*]/', 'confirmed'],
         ], [
             'nip.digits' => 'NIP harus terdiri dari tepat 18 digit angka.',
             'nip.unique' => 'NIP ini sudah digunakan oleh admin lain.',
+            'email.email' => 'Email harus menggunakan format yang valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh admin lain.',
             'password.confirmed' => 'Validasi password tidak cocok.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.regex' => 'Password minimal menggunakan satu karakter spesial: . ! @ # $ % ^ & *',
@@ -56,7 +62,7 @@ class AdminUserController extends Controller
         $payload = [
             'nip' => $validated['nip'],
             'name' => 'Admin ' . $validated['nip'],
-            'email' => $this->buildEmailFromNip($validated['nip']),
+            'email' => $validated['email'],
         ];
 
         if (! empty($validated['password'])) {
@@ -73,10 +79,5 @@ class AdminUserController extends Controller
         User::query()->findOrFail($id)->delete();
 
         return back()->with('success', 'Admin berhasil dihapus.');
-    }
-
-    protected function buildEmailFromNip(string $nip): string
-    {
-        return $nip . '@admin.local';
     }
 }
