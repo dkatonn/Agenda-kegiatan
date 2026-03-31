@@ -20,6 +20,13 @@
 </head>
 
 <body>
+    @php
+        $sidebarAgendaCount = \App\Models\Agenda::count();
+        $sidebarEmployeeCount = \App\Models\Employee::count();
+        $sidebarSettings = \App\Models\Setting::pluck('value', 'key');
+        $sidebarHasBackground = !empty($sidebarSettings->get('background'));
+        $sidebarHasRunningText = !empty($sidebarSettings->get('running_text'));
+    @endphp
 
     <div class="admin-wrapper">
 
@@ -27,30 +34,47 @@
         <aside class="sidebar">
 
             <div class="logo">
-                <i class="bi bi-display"></i>
-                <span>TV Agenda</span>
+                <div class="logo-mark">
+                    <i class="bi bi-broadcast-pin"></i>
+                </div>
+                <div class="logo-text">
+                    <strong>TV Agenda</strong>
+                    <span>Control Center</span>
+                </div>
             </div>
+
+            <div class="sidebar-caption">Kelola tampilan TV, agenda, pegawai, dan media dari satu panel.</div>
 
             <nav class="menu">
 
                 <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
                     <i class="bi bi-house"></i>
-                    Dashboard
+                    <span>Dashboard</span>
                 </a>
 
                 <a href="{{ route('admin.employee') }}" class="{{ request()->routeIs('admin.employee*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i>
-                    Pegawai
+                    <span>Pegawai</span>
                 </a>
 
                 <a href="{{ route('admin.video') }}" class="{{ request()->routeIs('admin.video*') ? 'active' : '' }}">
                     <i class="bi bi-film"></i>
-                    Video
+                    <span>Video</span>
                 </a>
 
                 <a href="{{ route('admin.agenda') }}" class="{{ request()->routeIs('admin.agenda*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-event"></i>
-                    Agenda
+                    <span>Agenda</span>
+                </a>
+
+                <a href="{{ route('admin.running-text') }}" class="{{ request()->routeIs('admin.running-text*') ? 'active' : '' }}">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>Teks Berjalan</span>
+                </a>
+
+                <a href="{{ route('admin.user-settings') }}" class="{{ request()->routeIs('admin.user-settings*') ? 'active' : '' }}">
+                    <i class="bi bi-person-gear"></i>
+                    <span>User Settings</span>
                 </a>
 
                 <a href="{{ route('admin.admins') }}" class="{{ request()->routeIs('admin.admins*') ? 'active' : '' }}">
@@ -60,6 +84,34 @@
 
             </nav>
 
+            <div class="sidebar-utility">
+                <div class="sidebar-utility-label">Akses Cepat</div>
+                <a href="{{ route('tv') }}" target="_blank" class="sidebar-utility-link">
+                    <i class="bi bi-tv"></i>
+                    <span>Buka Preview TV</span>
+                </a>
+                <div class="sidebar-utility-stats">
+                    <div class="sidebar-utility-stat">
+                        <span>Agenda</span>
+                        <strong>{{ $sidebarAgendaCount }}</strong>
+                    </div>
+                    <div class="sidebar-utility-stat">
+                        <span>Pegawai</span>
+                        <strong>{{ $sidebarEmployeeCount }}</strong>
+                    </div>
+                    <div class="sidebar-utility-stat">
+                        <span>Background</span>
+                        <strong>{{ $sidebarHasBackground ? 'Aktif' : 'Kosong' }}</strong>
+                    </div>
+                    <div class="sidebar-utility-stat">
+                        <span>Teks</span>
+                        <strong>{{ $sidebarHasRunningText ? 'Aktif' : 'Kosong' }}</strong>
+                    </div>
+                </div>
+                <div class="sidebar-utility-note">
+                    Ringkasan ini membantu cek cepat kondisi konten TV tanpa perlu pindah halaman.
+                </div>
+            </div>
         </aside>
 
 
@@ -68,33 +120,40 @@
 
             <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">@yield('title')</h5>
+                <div class="topbar-copy">
+                    <div class="topbar-eyebrow">Admin Panel</div>
+                    <h5 class="mb-0">@yield('title')</h5>
+                </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('tv') }}" target="_blank" class="btn btn-primary btn-sm">
-                        <i class="bi bi-tv"></i>
-                        Preview TV
-                    </a>
-
-                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-box-arrow-right"></i>
-                            Logout
+                <div class="topbar-actions">
+                    <div class="dropdown">
+                        <button class="btn topbar-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="topbar-user-avatar">
+                                <i class="bi bi-person"></i>
+                            </span>
                         </button>
-                    </form>
+
+                        <ul class="dropdown-menu dropdown-menu-end topbar-user-menu">
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#comingSoonAccountModal">
+                                    <i class="bi bi-key"></i>
+                                    Ganti Password
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#comingSoonAccountModal">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </header>
 
 
             <!-- CONTENT -->
             <div class="content container-fluid">
-
-                @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-                @endif
 
                 @if(session('error'))
                 <div class="alert alert-danger">
@@ -116,7 +175,219 @@
 
     </div>
 
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content delete-confirm-modal">
+                <div class="modal-body text-center">
+                    <div class="delete-confirm-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="delete-confirm-title">Konfirmasi Penghapusan</h5>
+                    <p class="delete-confirm-message js-delete-confirm-message">
+                        Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-danger-soft delete-confirm-submit js-delete-confirm-submit">Ya, hapus</button>
+                    <button type="button" class="btn btn-light delete-confirm-cancel" data-bs-dismiss="modal">Tidak</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="comingSoonAccountModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content delete-confirm-modal">
+                <div class="modal-body text-center">
+                    <div class="delete-confirm-icon account-coming-soon-icon">
+                        <i class="bi bi-person-gear"></i>
+                    </div>
+                    <h5 class="delete-confirm-title">Fitur Segera Hadir</h5>
+                    <p class="delete-confirm-message">
+                        Menu akun untuk ganti password dan logout akan diaktifkan setelah modul user dan database-nya selesai disiapkan.
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Mengerti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.data-panel').forEach((panel) => {
+                const table = panel.querySelector('.js-admin-table');
+                if (!table) return;
+
+                const tbody = table.querySelector('tbody');
+                if (!tbody) return;
+
+                const pageSizeSelect = panel.querySelector('.table-page-size');
+                const searchInput = panel.querySelector('.table-search-input');
+                const info = panel.querySelector('.table-info');
+                const prevButton = panel.querySelector('.table-prev');
+                const nextButton = panel.querySelector('.table-next');
+                const pageIndicator = panel.querySelector('.table-page-indicator');
+
+                let currentPage = 1;
+                const getRows = () => Array.from(tbody.querySelectorAll('tr')).filter((row) => row.children.length > 1);
+
+                const getFilteredRows = () => {
+                    const rows = getRows();
+                    const keyword = (searchInput?.value || '').trim().toLowerCase();
+                    if (!keyword) return rows;
+
+                    return rows.filter((row) => row.innerText.toLowerCase().includes(keyword));
+                };
+
+                const renderTable = () => {
+                    const pageSize = Number(pageSizeSelect?.value || 10);
+                    const filteredRows = getFilteredRows();
+                    const totalRows = filteredRows.length;
+                    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+                    if (currentPage > totalPages) {
+                        currentPage = totalPages;
+                    }
+
+                    const startIndex = totalRows === 0 ? 0 : (currentPage - 1) * pageSize;
+                    const endIndex = Math.min(startIndex + pageSize, totalRows);
+
+                    getRows().forEach((row) => {
+                        row.style.display = 'none';
+                    });
+
+                    filteredRows.slice(startIndex, endIndex).forEach((row) => {
+                        row.style.display = '';
+                    });
+
+                    if (info) {
+                        if (totalRows === 0) {
+                            info.textContent = 'Showing 0 to 0 of 0 entries';
+                        } else {
+                            info.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalRows} entries`;
+                        }
+                    }
+
+                    if (pageIndicator) {
+                        pageIndicator.textContent = `${currentPage}`;
+                    }
+
+                    if (prevButton) prevButton.disabled = currentPage === 1;
+                    if (nextButton) nextButton.disabled = currentPage >= totalPages;
+                };
+
+                pageSizeSelect?.addEventListener('change', () => {
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                searchInput?.addEventListener('input', () => {
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                prevButton?.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage -= 1;
+                        renderTable();
+                    }
+                });
+
+                nextButton?.addEventListener('click', () => {
+                    const pageSize = Number(pageSizeSelect?.value || 10);
+                    const totalRows = getFilteredRows().length;
+                    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+                    if (currentPage < totalPages) {
+                        currentPage += 1;
+                        renderTable();
+                    }
+                });
+
+                panel.addEventListener('admin-table:refresh', () => {
+                    renderTable();
+                });
+
+                renderTable();
+            });
+
+            const confirmModalElement = document.getElementById('deleteConfirmModal');
+            const confirmMessageElement = document.querySelector('.js-delete-confirm-message');
+            const confirmSubmitButton = document.querySelector('.js-delete-confirm-submit');
+            const confirmModal = confirmModalElement ? new bootstrap.Modal(confirmModalElement) : null;
+            let pendingAction = null;
+
+            const openDeleteConfirm = (message, onConfirm) => {
+                if (!confirmModal || !confirmMessageElement || !confirmSubmitButton) {
+                    if (window.confirm(message)) {
+                        onConfirm();
+                    }
+                    return;
+                }
+
+                pendingAction = onConfirm;
+                confirmMessageElement.textContent = message;
+                confirmModal.show();
+            };
+
+            confirmSubmitButton?.addEventListener('click', () => {
+                if (pendingAction) {
+                    pendingAction();
+                    pendingAction = null;
+                }
+
+                confirmModal?.hide();
+            });
+
+            confirmModalElement?.addEventListener('hidden.bs.modal', () => {
+                pendingAction = null;
+            });
+
+            document.querySelectorAll('form.js-confirm-delete').forEach((form) => {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+
+                    const message = form.dataset.confirmMessage || 'Apakah Anda yakin ingin menghapus data ini?';
+                    openDeleteConfirm(message, () => {
+                        if (form.dataset.ajaxSubmit === 'true') {
+                            form.dispatchEvent(new CustomEvent('ajax-confirmed-submit', { bubbles: true }));
+                            return;
+                        }
+
+                        form.submit();
+                    });
+                });
+            });
+
+            document.querySelectorAll('button[data-confirm-submit]').forEach((button) => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    const message = button.dataset.confirmSubmit || 'Apakah Anda yakin ingin melanjutkan aksi ini?';
+                    const form = button.form;
+
+                    openDeleteConfirm(message, () => {
+                        if (form) {
+                            if (typeof form.requestSubmit === 'function') {
+                                form.requestSubmit(button);
+                            } else {
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = button.name;
+                                hiddenInput.value = button.value;
+                                hiddenInput.dataset.confirmTemp = 'true';
+                                form.appendChild(hiddenInput);
+                                form.submit();
+                                hiddenInput.remove();
+                            }
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
     {{-- tambahan kalau nanti butuh js per halaman --}}
     @stack('scripts')

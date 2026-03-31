@@ -8,15 +8,14 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\Auth\AdminAuthController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\UserSettingController;
 
 
 /* TV DISPLAY */
 
 Route::get('/', [TVController::class, 'index'])->name('tv');
+Route::get('/tv/state', [TVController::class, 'state'])->name('tv.state');
+Route::get('/tv/payload', [TVController::class, 'payload'])->name('tv.payload');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'create'])->name('login');
@@ -46,9 +45,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 
-    Route::get('/admins', [AdminUserController::class, 'index'])->name('admins');
+    Route::get('/teks-berjalan', [SettingController::class, 'index'])->name('running-text');
 
-    Route::get('/setting', [SettingController::class, 'index'])->name('setting');
+    Route::get('/user-settings', [UserSettingController::class, 'index'])->name('user-settings');
 
 
     // CRUD EMPLOYEE
@@ -81,6 +80,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // CRUD VIDEO
 
     Route::post('/video', [VideoController::class, 'store'])->name('video.store');
+
+    Route::put('/video/{id}', [VideoController::class, 'update'])->name('video.update');
+
+    Route::patch('/video/{id}/toggle', [VideoController::class, 'toggle'])->name('video.toggle');
+
+    Route::patch('/video/reorder', [VideoController::class, 'reorder'])->name('video.reorder');
 
     Route::delete('/video/{id}', [VideoController::class, 'delete'])->name('video.delete');
 

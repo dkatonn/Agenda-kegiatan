@@ -8,6 +8,12 @@ class Video extends Model
 {
     protected $fillable = [
         'title',
-        'file_path'
+        'file_path',
+        'source_type',
+        'source_path',
+        'unit',
+        'is_active',
+        'sort_order',
+        'display_order',
     ];
 }
