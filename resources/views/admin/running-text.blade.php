@@ -9,7 +9,7 @@
         <div class="admin-card">
             <div class="section-heading">
                 <div>
-                    <div class="section-eyebrow">Manajemen Informasi</div>
+                    <div class="section-eyebrow">Manajemen Informasi Teks Berjalan</div>
                     <h6 class="panel-title">
                         <i class="bi bi-chat-left-text"></i>
                         Pengaturan Teks Berjalan
@@ -58,17 +58,17 @@
                 </div>
             </div>
 
-            <div class="running-text-stage">
-                <div class="running-text-stage-label">PENGUMUMAN</div>
-                <div class="running-text-stage-track">
-                    <div class="running-text-stage-content js-running-text-preview">
-                        {{ $settings['running_text'] ?? 'Belum ada teks berjalan yang disimpan.' }}
+                <div class="running-text-stage">
+                    <div class="running-text-stage-label">PENGUMUMAN</div>
+                    <div class="running-text-stage-track">
+                        <div class="running-text-stage-content js-running-text-preview">
+                        {{ $tickerText ?? '' }}
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <div class="info-box mt-4">
-                Gunakan kalimat singkat, jelas, dan mudah dibaca karena teks akan terus bergerak di layar TV.
+                Running text manual akan digabung otomatis dengan ucapan ulang tahun dari API Kemendagri memakai pemisah `|`.
             </div>
         </div>
     </div>
@@ -79,12 +79,22 @@
     document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('running_text');
         const preview = document.querySelector('.js-running-text-preview');
+        let previewAnimationTimer = null;
 
         if (!input || !preview) return;
 
+        const birthdayPrefix = @json($birthdayTickerText ?? '');
+
         const syncPreview = () => {
-            const fallbackText = 'Belum ada teks berjalan yang disimpan.';
-            preview.textContent = input.value.trim() || fallbackText;
+            const manualText = input.value.trim();
+            preview.textContent = [birthdayPrefix, manualText].filter(Boolean).join(' | ');
+            preview.classList.remove('is-animated');
+            preview.style.transform = 'translateX(0)';
+            window.clearTimeout(previewAnimationTimer);
+            previewAnimationTimer = window.setTimeout(() => {
+                preview.style.transform = '';
+                preview.classList.add('is-animated');
+            }, 900);
         };
 
         syncPreview();

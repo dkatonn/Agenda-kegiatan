@@ -2,6 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - TV Agenda</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +18,7 @@
         <div class="auth-showcase">
             <div class="auth-showcase-badge">
                 <i class="bi bi-broadcast-pin"></i>
-                <span>Pusat Kendali TV Agenda</span>
+                <span>Papan pandu pengaturan TV</span>
             </div>
             <h1>Kelola tampilan TV internal dari satu panel yang rapi.</h1>
             <p>Masuk untuk mengatur pegawai, agenda, video, teks berjalan, dan pengaturan admin dengan tampilan yang selaras dengan dashboard utama.</p>
@@ -59,6 +62,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

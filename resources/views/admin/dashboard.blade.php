@@ -1,6 +1,6 @@
 @extends('admin.layout')
 
-@section('title','Dashboard')
+@section('title','Dasbor')
 
 @section('content')
 
@@ -71,6 +71,7 @@
                         Preview TV
                     </h6>
                 </div>
+                <div class="dashboard-sync-pill is-idle js-dashboard-sync-pill">Preview idle</div>
             </div>
 
             <div class="preview-tv-frame js-preview-tv-frame">
@@ -79,7 +80,7 @@
                         <iframe
                             src="{{ route('tv') }}"
                             title="Preview TV"
-                            class="preview-tv-iframe"
+                            class="preview-tv-iframe js-preview-tv-iframe"
                             loading="lazy">
                         </iframe>
                     </div>
@@ -100,7 +101,7 @@
                     <div class="section-eyebrow">Pengaturan Cepat</div>
                     <h6 class="card-title">
                         <i class="bi bi-gear"></i>
-                        Display Settings
+                        Pengaturan Latar Belakang
                     </h6>
                 </div>
             </div>
@@ -108,9 +109,8 @@
             <form action="{{ route('admin.setting.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Background -->
                 <div class="mb-3">
-                    <label class="form-label">Background TV</label>
+                    <label class="form-label">Latar Belakang TV</label>
                     <input type="file" name="bg_image" class="form-control js-background-input" accept="image/*">
                 </div>
 
@@ -119,7 +119,7 @@
                     <div class="background-preview-frame">
                         <img
                             src=""
-                            alt="Preview Upload Background TV"
+                            alt="Preview Upload Latar Belakang TV"
                             class="background-preview-image js-background-preview d-none">
 
                         <div class="background-preview-empty js-background-preview-empty">
@@ -138,10 +138,10 @@
                         name="remove_background"
                         value="1"
                         class="btn btn-danger-soft"
-                        data-confirm-submit="Yakin ingin menghapus background TV ini?"
+                        data-confirm-submit="Yakin ingin menghapus latar belakang TV ini?"
                         {{ empty($setting['background']) ? 'disabled' : '' }}>
                         <i class="bi bi-trash"></i>
-                        Hapus Background
+                        Hapus Latar Belakang
                     </button>
                 </div>
 
@@ -151,6 +151,86 @@
 
     </div>
 
+</div>
+
+<div class="admin-card dashboard-agenda-card mt-4">
+    <div class="section-heading">
+        <div>
+            <div class="section-eyebrow">Ringkasan Jadwal</div>
+            <h6 class="card-title">
+                <i class="bi bi-calendar3"></i>
+                Urutan Agenda Dashboard
+            </h6>
+        </div>
+        <div class="dashboard-agenda-meta">
+            Preview Dasbor dibatasi agar tetap bagus dipantau cepat. Buka menu Agenda untuk daftar lengkap.
+        </div>
+    </div>
+
+    <div class="dashboard-agenda-summary">
+        <span>{{ $dashboardAgendaUpcomingTotal }} agenda hari ini dan mendatang</span>
+        <span>{{ $dashboardAgendaPastTotal }} agenda lampau</span>
+        <a href="{{ route('admin.agenda') }}" class="dashboard-agenda-link">Lihat daftar lengkap</a>
+    </div>
+
+    <div class="dashboard-agenda-stream">
+        @forelse ($dashboardAgendaUpcoming as $item)
+            @php
+                $agendaDate = \Carbon\Carbon::parse($item->date)->startOfDay();
+                $isToday = $item->dashboard_bucket === 'today';
+            @endphp
+
+            <article class="dashboard-agenda-item {{ $isToday ? 'is-today' : 'is-upcoming' }}">
+                <div class="dashboard-agenda-date">
+                    <span class="dashboard-agenda-badge {{ $isToday ? 'is-today' : 'is-upcoming' }}">
+                        {{ $isToday ? 'Hari ini' : 'Akan datang' }}
+                    </span>
+                    <strong>{{ $agendaDate->locale('id')->translatedFormat('d F Y') }}</strong>
+                    <small>{{ \Carbon\Carbon::parse($item->time)->format('H:i') }} WIB</small>
+                </div>
+                <div class="dashboard-agenda-copy">
+                    <strong>{{ $item->name }}</strong>
+                    <span>{{ $item->location }}</span>
+                    <small>{{ $item->disposition }}</small>
+                </div>
+            </article>
+        @empty
+            <div class="dashboard-agenda-empty">
+                Belum ada agenda untuk hari ini atau tanggal yang akan datang.
+            </div>
+        @endforelse
+
+        @if ($dashboardAgendaUpcoming->isNotEmpty() && $dashboardAgendaPast->isNotEmpty())
+            <div class="dashboard-agenda-divider" role="separator" aria-label="Pembatas agenda lampau">
+                <span>Agenda lampau</span>
+            </div>
+        @endif
+
+        @forelse ($dashboardAgendaPast as $item)
+            @php
+                $agendaDate = \Carbon\Carbon::parse($item->date)->startOfDay();
+            @endphp
+
+            <article class="dashboard-agenda-item is-past">
+                <div class="dashboard-agenda-date">
+                    <span class="dashboard-agenda-badge is-past">Lampau</span>
+                    <strong>{{ $agendaDate->locale('id')->translatedFormat('d F Y') }}</strong>
+                    <small>{{ \Carbon\Carbon::parse($item->time)->format('H:i') }} WIB</small>
+                </div>
+                <div class="dashboard-agenda-copy">
+                    <strong>{{ $item->name }}</strong>
+                    <span>{{ $item->location }}</span>
+                    <small>{{ $item->disposition }}</small>
+                </div>
+            </article>
+        @empty
+            @if ($dashboardAgendaUpcoming->isEmpty())
+                <div class="dashboard-agenda-empty">
+                    Belum ada data agenda yang tersimpan di sistem.
+                </div>
+            @endif
+        @endforelse
+    </div>
 </div>
 
 
@@ -168,6 +248,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const frame = document.querySelector('.js-preview-tv-frame');
         const scaleLayer = document.querySelector('.js-preview-tv-scale');
+        const previewIframe = document.querySelector('.js-preview-tv-iframe');
         const backgroundInput = document.querySelector('.js-background-input');
         const backgroundPreview = document.querySelector('.js-background-preview');
         const backgroundPreviewEmpty = document.querySelector('.js-background-preview-empty');
@@ -207,6 +288,58 @@
                 backgroundPreviewEmpty.classList.add('d-none');
             });
         }
+
+        const syncPill = document.querySelector('.js-dashboard-sync-pill');
+        let clearConsoleTimer = null;
+
+        const setSyncStatus = (message, state = 'idle') => {
+            if (!syncPill) {
+                return;
+            }
+
+            syncPill.textContent = message;
+            syncPill.className = `dashboard-sync-pill is-${state} js-dashboard-sync-pill`;
+        };
+
+        const clearQuietConsole = () => {
+            window.clearTimeout(clearConsoleTimer);
+            clearConsoleTimer = window.setTimeout(() => {
+                console.clear();
+            }, 1200);
+        };
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin || event.data?.source !== 'tv-display') {
+                return;
+            }
+
+            if (event.data.type === 'tv-reverb-connected') {
+                setSyncStatus('Reverb terhubung ke preview TV.', 'connected');
+                clearQuietConsole();
+                return;
+            }
+
+            if (event.data.type === 'tv-sync-queued') {
+                setSyncStatus('Perubahan diterima dan akan tayang sekitar 1 menit lagi.', 'queued');
+                return;
+            }
+
+            if (event.data.type === 'tv-sync-applied') {
+                setSyncStatus('Preview TV sudah sinkron dengan data terbaru.', 'synced');
+                clearQuietConsole();
+                return;
+            }
+
+            if (event.data.type === 'tv-reverb-error' || event.data.type === 'tv-sync-error') {
+                setSyncStatus('Ada kendala sinkronisasi preview TV.', 'error');
+                console.error('Dashboard preview: TV sync issue', event.data);
+            }
+        });
+
+        previewIframe?.addEventListener('load', () => {
+            setSyncStatus('Preview aktif dan menunggu pembaruan.', 'idle');
+            clearQuietConsole();
+        });
     });
 </script>
 @endpush

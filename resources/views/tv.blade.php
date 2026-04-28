@@ -10,6 +10,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/tv.css') }}" rel="stylesheet">
+    @php
+        $tvBuildManifestPath = public_path('build/manifest.json');
+        $tvBuildManifest = is_file($tvBuildManifestPath)
+            ? json_decode(file_get_contents($tvBuildManifestPath), true)
+            : [];
+        $hasTvViteEntry = is_array($tvBuildManifest) && array_key_exists('resources/js/tv.js', $tvBuildManifest);
+    @endphp
+    @if($hasTvViteEntry)
+        @vite(['resources/js/tv.js'])
+    @endif
 </head>
 
 <body>
@@ -73,7 +83,9 @@
     <!-- JS SLIDER -->
     <script src="{{ asset('js/tv/employee_slider.js') }}"></script>
     <script src="{{ asset('js/tv/agenda_slider.js') }}"></script>
-    <script src="{{ asset('js/tv/live_sync.js') }}"></script>
+    @if(! $hasTvViteEntry)
+        <script src="{{ asset('js/tv/live_sync.js') }}"></script>
+    @endif
 
 </body>
 

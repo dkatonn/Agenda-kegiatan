@@ -6,7 +6,9 @@ use App\Models\Agenda;
 use App\Models\Employee;
 use App\Models\Setting;
 use App\Models\Video;
+use App\Services\KemendagriPegawaiService;
 use App\Services\TataUsahaAgendaService;
+use App\Services\TvRevisionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
@@ -14,9 +16,11 @@ use Illuminate\Support\Facades\Storage;
 
 class TVController extends Controller
 {
-    public function __construct(protected TataUsahaAgendaService $tataUsahaAgendaService)
-    {
-    }
+    public function __construct(
+        protected TataUsahaAgendaService $tataUsahaAgendaService,
+        protected KemendagriPegawaiService $kemendagriPegawaiService,
+        protected TvRevisionService $tvRevisionService,
+    ) {}
 
     protected int $agendaPerSlide = 7;
 
@@ -75,27 +79,7 @@ class TVController extends Controller
 
     protected function getTvRevision(): string
     {
-        $agendaCount = Agenda::query()->count();
-        $employeeCount = Employee::query()->count();
-        $settingCount = Setting::query()->count();
-
-        $agendaUpdatedAt = $this->normalizeRevisionTimestamp(Agenda::query()->latest('updated_at')->value('updated_at'));
-        $employeeUpdatedAt = $this->normalizeRevisionTimestamp(Employee::query()->latest('updated_at')->value('updated_at'));
-        $settingUpdatedAt = $this->normalizeRevisionTimestamp(Setting::query()->latest('updated_at')->value('updated_at'));
-
-        return sha1(implode('|', [
-            $agendaCount,
-            $employeeCount,
-            $settingCount,
-            $agendaUpdatedAt,
-            $employeeUpdatedAt,
-            $settingUpdatedAt,
-        ]));
-    }
-
-    protected function normalizeRevisionTimestamp($value): string
-    {
-        return $value ? Carbon::parse($value)->toDateTimeString() : 'none';
+        return $this->tvRevisionService->current();
     }
 
     protected function getTvViewData(): array
@@ -106,6 +90,7 @@ class TVController extends Controller
         $settings['video'] = $activeVideo
             ? $this->resolveVideoUrlFromModel($activeVideo)
             : $this->resolveVideoUrlFromPath($settings['video'] ?? null);
+        $tickerText = $this->kemendagriPegawaiService->buildTickerText($settings['running_text'] ?? null);
 
         $employees = Employee::latest()->get();
         $tvRevision = $this->getTvRevision();
@@ -126,6 +111,7 @@ class TVController extends Controller
 
         return compact(
             'settings',
+            'tickerText',
             'employees',
             'tvRevision',
             'agendaPerSlide',

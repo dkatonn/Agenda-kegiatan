@@ -28,4 +28,64 @@
 
     <button type="submit" class="btn btn-primary w-100">Simpan Kata Sandi Baru</button>
 </form>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const resetForm = document.querySelector('.auth-form');
+        const csrfInput = resetForm?.querySelector('input[name="_token"]');
+        let tokenRefreshInFlight = null;
+
+        const refreshCsrfToken = function () {
+            if (!resetForm || !csrfInput) {
+                return Promise.resolve();
+            }
+
+            if (tokenRefreshInFlight) {
+                return tokenRefreshInFlight;
+            }
+
+            tokenRefreshInFlight = fetch(@json(route('csrf.token')), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-store',
+                },
+                cache: 'no-store',
+                credentials: 'same-origin',
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Gagal menyegarkan token reset password.');
+                    }
+
+                    return response.json();
+                })
+                .then(function (payload) {
+                    if (payload?.token) {
+                        csrfInput.value = payload.token;
+                    }
+                })
+                .finally(function () {
+                    tokenRefreshInFlight = null;
+                });
+
+            return tokenRefreshInFlight;
+        };
+
+        refreshCsrfToken().catch(function () {});
+
+        resetForm?.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            refreshCsrfToken()
+                .catch(function () {})
+                .finally(function () {
+                    HTMLFormElement.prototype.submit.call(resetForm);
+                });
+        });
+    });
+</script>
+@endpush
 @endsection

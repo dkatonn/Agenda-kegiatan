@@ -2,17 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Video;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Schema;
+use App\Services\AdminActivityLogger;
+use App\Services\EditLockService;
+use App\Services\TvBroadcastService;
+use App\Services\TvRevisionService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class VideoController extends Controller
 {
+    public function __construct(
+        protected TvRevisionService $tvRevisionService,
+        protected TvBroadcastService $tvBroadcastService,
+        protected AdminActivityLogger $activityLogger,
+        protected EditLockService $editLockService,
+    ) {}
+
     public function index()
     {
         $videos = $this->buildVideoCollection();
@@ -32,17 +45,25 @@ class VideoController extends Controller
         }
 
         $path = $request->file('video')->store('video', 'public');
+        $videoTitle = $request->filled('title')
+            ? $request->string('title')->toString()
+            : pathinfo($request->file('video')->getClientOriginalName(), PATHINFO_FILENAME);
 
         if (Schema::hasTable('videos')) {
             $hasActiveVideo = Video::query()->where('is_active', true)->exists();
-            $title = $request->filled('title')
-                ? $request->string('title')->toString()
-                : pathinfo($request->file('video')->getClientOriginalName(), PATHINFO_FILENAME);
 
             $attributes = [
-                'title' => Str::limit($title, 255, ''),
+                'title' => Str::limit($videoTitle, 255, ''),
                 'is_active' => ! $hasActiveVideo,
             ];
+
+            if (Schema::hasColumn('videos', 'created_by')) {
+                $attributes['created_by'] = $request->user()?->id;
+            }
+
+            if (Schema::hasColumn('videos', 'updated_by')) {
+                $attributes['updated_by'] = $request->user()?->id;
+            }
 
             if ($this->hasSortOrderColumn()) {
                 $attributes['sort_order'] = $this->nextSortOrder();
@@ -58,7 +79,7 @@ class VideoController extends Controller
 
             if ($this->hasSourcePathColumn()) {
                 $attributes['source_type'] = 'upload';
-                $attributes['source_path'] = 'storage/' . ltrim($path, '/');
+                $attributes['source_path'] = 'storage/'.ltrim($path, '/');
                 $attributes['unit'] = $attributes['unit'] ?? 'data';
             }
 
@@ -78,7 +99,17 @@ class VideoController extends Controller
                 ['key' => 'video'],
                 ['value' => $path]
             );
+
+            $video = null;
         }
+
+        $this->activityLogger->log('User menambah video', [
+            'video_id' => $video?->id,
+            'video_title' => $video?->title ?? $videoTitle,
+            'video_path' => $path,
+            'video_is_active' => $video?->is_active,
+        ]);
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
         if ($request->ajax()) {
             return $this->videoAjaxResponse('Video berhasil diupload');
@@ -95,10 +126,42 @@ class VideoController extends Controller
             'title' => ['required', 'string', 'max:255'],
         ]);
 
-        $video = Video::findOrFail($id);
-        $video->update([
+        $video = Video::with(['locker', 'updater'])->findOrFail($id);
+
+        if ($lockResponse = $this->lockViolationResponse($request, $video, 'Video')) {
+            return $lockResponse;
+        }
+
+        if ($conflictResponse = $this->versionConflictResponse($request, $video, 'Video')) {
+            return $conflictResponse;
+        }
+
+        $payload = [
             'title' => $request->string('title')->toString(),
+        ];
+
+        if (Schema::hasColumn('videos', 'updated_by')) {
+            $payload['updated_by'] = $request->user()?->id;
+        }
+
+        $video->fill($payload);
+
+        if (! $video->isDirty()) {
+            if ($request->ajax()) {
+                return $this->videoAjaxResponse('Tidak ada perubahan pada data video.');
+            }
+
+            return back()->with('info', 'Tidak ada perubahan pada data video.');
+        }
+
+        $video->save();
+        $this->editLockService->release($video, $request->user(), true);
+
+        $this->activityLogger->log('User mengubah data video', [
+            'video_id' => $video->id,
+            'video_title' => $video->title,
         ]);
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
         if ($request->ajax()) {
             return $this->videoAjaxResponse('Nama video berhasil diperbarui.');
@@ -111,11 +174,27 @@ class VideoController extends Controller
     {
         abort_unless(Schema::hasTable('videos'), 404);
 
-        $video = Video::findOrFail($id);
+        $video = Video::with('locker')->findOrFail($id);
+
+        if ($lockResponse = $this->lockViolationResponse($request, $video, 'Video')) {
+            return $lockResponse;
+        }
 
         if ($video->is_active) {
-            $video->update(['is_active' => false]);
+            $payload = ['is_active' => false];
+
+            if (Schema::hasColumn('videos', 'updated_by')) {
+                $payload['updated_by'] = $request->user()?->id;
+            }
+
+            $video->update($payload);
             Setting::where('key', 'video')->delete();
+
+            $this->activityLogger->log('User menonaktifkan video', [
+                'video_id' => $video->id,
+                'video_title' => $video->title,
+            ]);
+            $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
             if ($request->ajax()) {
                 return $this->videoAjaxResponse('Video berhasil dinonaktifkan.');
@@ -125,8 +204,20 @@ class VideoController extends Controller
         }
 
         Video::query()->update(['is_active' => false]);
-        $video->update(['is_active' => true]);
+        $payload = ['is_active' => true];
+
+        if (Schema::hasColumn('videos', 'updated_by')) {
+            $payload['updated_by'] = $request->user()?->id;
+        }
+
+        $video->update($payload);
         Setting::updateOrCreate(['key' => 'video'], ['value' => $this->resolveVideoPath($video)]);
+
+        $this->activityLogger->log('User mengaktifkan video', [
+            'video_id' => $video->id,
+            'video_title' => $video->title,
+        ]);
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
         if ($request->ajax()) {
             return $this->videoAjaxResponse('Video berhasil diaktifkan.');
@@ -156,6 +247,10 @@ class VideoController extends Controller
                     $updatePayload['display_order'] = $index + 1;
                 }
 
+                if (Schema::hasColumn('videos', 'updated_by')) {
+                    $updatePayload['updated_by'] = $request->user()?->id;
+                }
+
                 if ($updatePayload !== []) {
                     Video::query()
                         ->where('id', $videoId)
@@ -164,15 +259,32 @@ class VideoController extends Controller
             }
         });
 
+        $this->activityLogger->log('User mengubah urutan video', [
+            'ordered_ids' => $validated['ordered_ids'],
+        ]);
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
+
         return $this->videoAjaxResponse('Urutan video berhasil diperbarui.');
     }
 
     public function delete(Request $request, int $id)
     {
         if (Schema::hasTable('videos')) {
-            $video = Video::findOrFail($id);
+            $video = Video::with('locker')->findOrFail($id);
+
+            if ($lockResponse = $this->lockViolationResponse($request, $video, 'Video')) {
+                return $lockResponse;
+            }
+
             $wasActive = $video->is_active;
             $videoPath = $this->resolveVideoPath($video);
+
+            $this->activityLogger->log('User menghapus video', [
+                'video_id' => $video->id,
+                'video_title' => $video->title,
+                'video_path' => $videoPath,
+                'video_was_active' => $wasActive,
+            ]);
 
             $this->deleteVideoFile($videoPath);
             $video->delete();
@@ -189,6 +301,8 @@ class VideoController extends Controller
                 }
             }
 
+            $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
+
             if ($request->ajax()) {
                 return $this->videoAjaxResponse('Video berhasil dihapus.');
             }
@@ -199,15 +313,46 @@ class VideoController extends Controller
         $videoPath = Setting::where('key', 'video')->value('value');
 
         if ($videoPath) {
+            $this->activityLogger->log('User menghapus video legacy', [
+                'video_path' => $videoPath,
+            ]);
             Storage::disk('public')->delete($videoPath);
             Setting::where('key', 'video')->delete();
         }
+
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
         if ($request->ajax()) {
             return $this->videoAjaxResponse('Video berhasil dihapus.');
         }
 
         return back()->with('success', 'Video berhasil dihapus');
+    }
+
+    public function lock(Request $request, int $id): JsonResponse
+    {
+        $video = Video::with(['locker', 'updater'])->findOrFail($id);
+        $result = $this->editLockService->acquire($video, $request->user());
+
+        if (! $result['acquired']) {
+            return response()->json([
+                'message' => $this->editLockService->lockMessage($video),
+                'lock' => $result['lock'],
+            ], 423);
+        }
+
+        return response()->json([
+            'message' => 'Lock edit berhasil diambil untuk video ini.',
+            'lock' => $result['lock'],
+        ]);
+    }
+
+    public function unlock(Request $request, int $id): JsonResponse
+    {
+        $video = Video::findOrFail($id);
+        $this->editLockService->release($video, $request->user());
+
+        return response()->json(['released' => true]);
     }
 
     protected function syncLegacyVideoSetting(): void
@@ -284,6 +429,7 @@ class VideoController extends Controller
         $this->syncLegacyVideoSetting();
 
         return $this->orderedVideosQuery()
+            ->with(['updater', 'locker'])
             ->get()
             ->map(function (Video $video) {
                 $resolvedPath = $this->resolveVideoPath($video);
@@ -302,7 +448,7 @@ class VideoController extends Controller
     protected function videoPanelMeta($videos): string
     {
         return $videos->count()
-            ? $videos->count() . ' video tersimpan di sistem. Geser baris untuk mengatur urutan.'
+            ? $videos->count().' video tersimpan di sistem. Geser baris untuk mengatur urutan.'
             : 'Belum ada video yang diupload.';
     }
 
@@ -395,12 +541,14 @@ class VideoController extends Controller
 
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
+
             return;
         }
 
         $publicPrefixedPath = preg_replace('#^storage/#', '', ltrim($path, '/'));
         if (is_string($publicPrefixedPath) && Storage::disk('public')->exists($publicPrefixedPath)) {
             Storage::disk('public')->delete($publicPrefixedPath);
+
             return;
         }
 
@@ -421,6 +569,40 @@ class VideoController extends Controller
         $power = min($power, count($units) - 1);
         $value = $bytes / (1024 ** $power);
 
-        return number_format($value, $power === 0 ? 0 : 2) . ' ' . $units[$power];
+        return number_format($value, $power === 0 ? 0 : 2).' '.$units[$power];
+    }
+
+    protected function lockViolationResponse(Request $request, Video $video, string $entityLabel)
+    {
+        $userId = $request->user()?->id;
+
+        if (! $this->editLockService->isLockedByAnother($video, $userId)) {
+            return null;
+        }
+
+        return response()->json([
+            'message' => $this->editLockService->lockMessage($video),
+            'lock' => $this->editLockService->payload($video, $userId),
+        ], 423);
+    }
+
+    protected function versionConflictResponse(Request $request, Video $video, string $entityLabel)
+    {
+        $submittedVersion = trim((string) $request->input('updated_at_version'));
+        $currentVersion = $video->updated_at?->toIso8601String() ?? '';
+
+        if ($submittedVersion === '' || $submittedVersion === $currentVersion) {
+            return null;
+        }
+
+        $updatedBy = $video->updater?->name ?: 'admin lain';
+        $updatedAt = $video->updated_at
+            ? Carbon::parse($video->updated_at)->locale('id')->translatedFormat('d F Y H:i')
+            : 'waktu yang tidak diketahui';
+
+        return response()->json([
+            'message' => "{$entityLabel} ini sudah diubah oleh {$updatedBy} pada {$updatedAt}. Muat ulang data sebelum menyimpan lagi.",
+            'lock' => $this->editLockService->payload($video, $request->user()?->id),
+        ], 409);
     }
 }

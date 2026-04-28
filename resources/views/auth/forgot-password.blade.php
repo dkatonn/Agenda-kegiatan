@@ -10,7 +10,10 @@
         <label class="form-label">Email Admin</label>
         <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus>
         <small class="text-muted d-block mt-2">
-            Link reset password akan dikirim ke email ini. Untuk mode tes saat ini, email dicatat ke log aplikasi.
+            Link reset password akan dikirim ke email ini. Jika mailer lokal masih `log`, isi email dapat dilihat di `storage/logs/laravel.log`.
+        </small>
+        <small class="text-muted d-block mt-1">
+            Demi keamanan, satu email hanya dapat meminta link reset sekali dalam 24 jam.
         </small>
     </div>
 

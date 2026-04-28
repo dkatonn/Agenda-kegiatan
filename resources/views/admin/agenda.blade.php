@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="admin-card data-panel">
+<div class="admin-card data-panel" data-server-table="true">
 
     @if ($errors->any())
     <div class="alert alert-danger">
@@ -31,23 +31,23 @@
     </div>
 
     <div class="panel-toolbar table-toolbar">
-        <div class="panel-meta">Total {{ $agenda->count() }} agenda aktif di sistem.</div>
-        <div class="table-controls">
+        <div class="panel-meta">Total {{ $agenda->total() }} agenda aktif di sistem.</div>
+        <form method="GET" action="{{ route('admin.agenda') }}" class="table-controls" data-server-table-form>
             <label class="table-control-inline">
                 <span>Tampilkan</span>
-                <select class="form-select form-select-sm table-page-size">
-                    <option value="5">5</option>
-                    <option value="10" selected>10</option>
-                    <option value="25">25</option>
+                <select name="per_page" class="form-select form-select-sm table-page-size">
+                    <option value="5" {{ $perPage === 5 ? 'selected' : '' }}>5</option>
+                    <option value="10" {{ $perPage === 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage === 25 ? 'selected' : '' }}>25</option>
                 </select>
                 <span>data</span>
             </label>
 
             <label class="table-control-search">
                 <span>Cari:</span>
-                <input type="text" class="form-control form-control-sm table-search-input" placeholder="Cari agenda...">
+                <input type="text" name="q" value="{{ $search }}" class="form-control form-control-sm table-search-input" placeholder="Cari agenda...">
             </label>
-        </div>
+        </form>
     </div>
 
     <div class="table-shell">
@@ -65,12 +65,22 @@
 
             <tbody>
 
-                @foreach($agenda as $item)
+                @forelse($currentItems as $item)
                 @php
                     $agendaDate = \Carbon\Carbon::parse($item->date)->startOfDay();
                     $isToday = $agendaDate->equalTo(now()->startOfDay());
                     $isTomorrow = $agendaDate->equalTo(now()->copy()->addDay()->startOfDay());
+                    $previousBucket = $loop->index > 0 ? (int) $currentItems[$loop->index - 1]->period_group : null;
+                    $currentBucket = (int) $item->period_group;
                 @endphp
+
+                @if($loop->index > 0 && $previousBucket !== $currentBucket)
+                <tr class="agenda-divider-row">
+                    <td colspan="5">
+                        <div class="agenda-divider-marker">Agenda Yang Sudah Terlewat</div>
+                    </td>
+                </tr>
+                @endif
 
                 <tr class="{{ $isToday ? 'agenda-row-today' : ($isTomorrow ? 'agenda-row-tomorrow' : '') }}">
 
@@ -113,19 +123,21 @@
 
                 </tr>
 
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Belum ada agenda yang sesuai dengan pencarian ini.</td>
+                </tr>
+                @endforelse
 
             </tbody>
 
         </table>
 
         <div class="table-footer">
-            <div class="table-info"></div>
-            <div class="table-pagination">
-                <button type="button" class="btn btn-light btn-sm table-prev">Sebelumnya</button>
-                <span class="table-page-indicator">1</span>
-                <button type="button" class="btn btn-light btn-sm table-next">Berikutnya</button>
+            <div class="table-info">
+                Menampilkan {{ $agenda->firstItem() ?? 0 }} sampai {{ $agenda->lastItem() ?? 0 }} dari {{ $agenda->total() }} data
             </div>
+            @include('admin.partials.server-table-pagination', ['paginator' => $agenda])
         </div>
     </div>
 
@@ -158,26 +170,41 @@
 
                         <div class="mb-3">
                             <label class="form-label">Waktu</label>
-                            <input type="time" name="time" class="form-control" required>
+                            <input type="text" name="time" class="form-control" placeholder="HH:MM" inputmode="numeric" pattern="^\d{2}:\d{2}$" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Kegiatan</label>
-                        <input type="text" name="name" class="form-control agenda-char-limit" data-char-limit="45" maxlength="45" required>
-                        <small class="text-muted">Maksimal 45 karakter. <span class="agenda-char-counter">0/45</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="name" class="form-control" data-char-limit="45" maxlength="45" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 45 karakter</span>
+                                <span data-char-counter>0/45</span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Lokasi</label>
-                        <input type="text" name="location" class="form-control agenda-char-limit" data-char-limit="30" maxlength="30" required>
-                        <small class="text-muted">Maksimal 30 karakter. <span class="agenda-char-counter">0/30</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="location" class="form-control" data-char-limit="30" maxlength="30" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 30 karakter</span>
+                                <span data-char-counter>0/30</span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Disposisi</label>
-                        <input type="text" name="disposition" class="form-control agenda-char-limit" data-char-limit="30" maxlength="30" required>
-                        <small class="text-muted">Maksimal 30 karakter. <span class="agenda-char-counter">0/30</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="disposition" class="form-control" data-char-limit="30" maxlength="30" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 30 karakter</span>
+                                <span data-char-counter>0/30</span>
+                            </small>
+                        </div>
                     </div>
                 </div>
 
@@ -191,12 +218,19 @@
 </div>
 
 @foreach($agenda as $item)
-<div class="modal fade" id="editAgendaModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="editAgendaModal{{ $item->id }}" tabindex="-1" aria-hidden="true" data-edit-lock-modal>
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content admin-form-modal">
-            <form action="{{ route('admin.agenda.update', $item->id) }}" method="POST">
+            <form
+                action="{{ route('admin.agenda.update', $item->id) }}"
+                method="POST"
+                data-edit-lock-form
+                data-lock-endpoint="{{ route('admin.agenda.lock', $item->id) }}"
+                data-unlock-endpoint="{{ route('admin.agenda.unlock', $item->id) }}"
+            >
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="updated_at_version" value="{{ $item->updated_at?->toIso8601String() }}">
 
                 <div class="modal-header">
                     <div>
@@ -207,9 +241,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <div class="form-section-note">
-                        Pastikan informasi agenda tetap singkat, akurat, dan sesuai urutan tayang.
-                    </div>
+                    <div class="alert alert-info d-none js-edit-lock-status" role="alert"></div>
 
                     <div class="admin-form-grid admin-form-grid-2">
                         <div class="mb-3">
@@ -219,26 +251,48 @@
 
                         <div class="mb-3">
                             <label class="form-label">Waktu</label>
-                            <input type="time" name="time" class="form-control" value="{{ \Illuminate\Support\Str::limit($item->time, 5, '') }}" required>
+                            <input type="text" name="time" class="form-control" value="{{ str_replace('.', ':', \Illuminate\Support\Str::limit($item->time, 5, '')) }}" placeholder="HH:MM" inputmode="numeric" pattern="^\d{2}:\d{2}$" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Kegiatan</label>
-                        <input type="text" name="name" class="form-control agenda-char-limit" data-char-limit="45" maxlength="45" value="{{ $item->name }}" required>
-                        <small class="text-muted">Maksimal 45 karakter. <span class="agenda-char-counter">0/45</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="name" class="form-control" data-char-limit="45" maxlength="45" value="{{ $item->name }}" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 45 karakter</span>
+                                <span data-char-counter>0/45</span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Lokasi</label>
-                        <input type="text" name="location" class="form-control agenda-char-limit" data-char-limit="30" maxlength="30" value="{{ $item->location }}" required>
-                        <small class="text-muted">Maksimal 30 karakter. <span class="agenda-char-counter">0/30</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="location" class="form-control" data-char-limit="30" maxlength="30" value="{{ $item->location }}" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 30 karakter</span>
+                                <span data-char-counter>0/30</span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Disposisi</label>
-                        <input type="text" name="disposition" class="form-control agenda-char-limit" data-char-limit="30" maxlength="30" value="{{ $item->disposition }}" required>
-                        <small class="text-muted">Maksimal 30 karakter. <span class="agenda-char-counter">0/30</span></small>
+                        <div class="input-counter-field">
+                            <input type="text" name="disposition" class="form-control" data-char-limit="30" maxlength="30" value="{{ $item->disposition }}" required>
+                            <small class="text-muted input-counter-meta">
+                                <span>Maksimal 30 karakter</span>
+                                <span data-char-counter>0/30</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-section-note text-start mb-0" data-last-updated-meta>
+                        Terakhir diubah oleh {{ $item->updater?->name ?? 'sistem' }}
+                        @if($item->updated_at)
+                        pada {{ $item->updated_at->locale('id')->translatedFormat('d F Y H:i') }}
+                        @endif
                     </div>
                 </div>
 
@@ -251,33 +305,5 @@
     </div>
 </div>
 @endforeach
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const limitInputCharacters = (input) => {
-            const limit = Number(input.dataset.charLimit || 50);
-            const counter = input.parentElement.querySelector('.agenda-char-counter');
-
-            if (input.value.length > limit) {
-                input.value = input.value.slice(0, limit);
-            }
-
-            const currentCount = input.value.length;
-            if (counter) {
-                counter.textContent = `${currentCount}/${limit}`;
-            }
-        };
-
-        document.querySelectorAll('.agenda-char-limit').forEach((input) => {
-            limitInputCharacters(input);
-            input.addEventListener('input', () => limitInputCharacters(input));
-            input.addEventListener('paste', () => {
-                setTimeout(() => limitInputCharacters(input), 0);
-            });
-        });
-    });
-</script>
-@endpush
 
 @endsection

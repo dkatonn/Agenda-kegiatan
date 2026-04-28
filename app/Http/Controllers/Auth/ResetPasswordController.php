@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class ResetPasswordController extends Controller
 {
@@ -27,11 +26,15 @@ class ResetPasswordController extends Controller
             'email' => ['required', 'email'],
             'password' => [
                 'required',
+                'string',
+                'min:8',
+                'regex:/[.!@#$%^&*]/',
                 'confirmed',
-                PasswordRule::min(8)->mixedCase()->numbers()->symbols(),
             ],
         ], [
             'password.confirmed' => 'Validasi password tidak cocok.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
+            'password.regex' => 'Kata sandi minimal menggunakan satu karakter spesial: . ! @ # $ % ^ & *',
         ]);
 
         $status = Password::reset(

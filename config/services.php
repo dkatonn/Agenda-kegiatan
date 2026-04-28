@@ -41,4 +41,12 @@ return [
         'timeout' => env('TATA_USAHA_API_TIMEOUT', 5),
     ],
 
+    'kemendagri_pegawai' => [
+        'base_url' => env('KEMENDAGRI_API_BASE_URL', 'https://apimanager-ropeg.kemendagri.go.id'),
+        'username' => env('KEMENDAGRI_API_USER'),
+        'password' => env('KEMENDAGRI_API_PASS'),
+        'timeout' => env('KEMENDAGRI_API_TIMEOUT', 10),
+        'verify_ssl' => env('KEMENDAGRI_API_VERIFY_SSL', true),
+    ],
+
 ];

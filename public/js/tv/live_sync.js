@@ -6,12 +6,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const stateUrl = container.dataset.tvStateUrl;
     const payloadUrl = container.dataset.tvPayloadUrl;
+    const updateDelayMs = 1 * 60 * 1000;
+    const pollingCheckMs = 5 * 1000;
     let currentRevision = container.dataset.tvRevision;
+    let queuedRevision = null;
+    let updateTimer = null;
     let isSyncing = false;
+    let clearConsoleTimer = null;
 
     if (!stateUrl || !payloadUrl || !currentRevision) {
         return;
     }
+
+    const notifyParent = (payload) => {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                source: "tv-display",
+                ...payload,
+            }, window.location.origin);
+        }
+    };
+
+    const clearQuietConsole = () => {
+        window.clearTimeout(clearConsoleTimer);
+        clearConsoleTimer = window.setTimeout(() => {
+            console.clear();
+            console.info("console cleared");
+        }, 1200);
+    };
 
     function applyPayload(payload) {
         const employeeSection = document.querySelector("#tv-employee-section");
@@ -63,7 +85,69 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function checkTvUpdates() {
+    async function syncPayload() {
+        if (document.hidden || isSyncing) {
+            return;
+        }
+
+        isSyncing = true;
+
+        try {
+            const payloadResponse = await fetch(payloadUrl, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json",
+                },
+                cache: "no-store",
+            });
+
+            if (!payloadResponse.ok) {
+                return;
+            }
+
+            const nextPayload = await payloadResponse.json();
+            applyPayload(nextPayload);
+            currentRevision = nextPayload.revision || queuedRevision || currentRevision;
+            queuedRevision = null;
+            container.dataset.tvRevision = currentRevision;
+            notifyParent({ type: "tv-sync-applied", revision: currentRevision });
+            clearQuietConsole();
+        } catch (error) {
+            console.error("TV polling fallback failed", error);
+            notifyParent({ type: "tv-sync-error", message: String(error) });
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    function schedulePayloadSync(nextRevision) {
+        if (!nextRevision || nextRevision === currentRevision) {
+            return;
+        }
+
+        const shouldResetTimer = queuedRevision !== nextRevision;
+        queuedRevision = nextRevision;
+
+        if (shouldResetTimer && updateTimer) {
+            window.clearTimeout(updateTimer);
+        }
+
+        if (!updateTimer || shouldResetTimer) {
+            console.info("incoming update : refreshing in 1 minutes", {
+                previousRevision: currentRevision,
+                nextRevision: queuedRevision,
+            });
+            notifyParent({ type: "tv-sync-queued", mode: "polling-fallback", revision: queuedRevision, delayMs: updateDelayMs });
+
+            updateTimer = window.setTimeout(() => {
+                updateTimer = null;
+                syncPayload();
+            }, updateDelayMs);
+        }
+    }
+
+    setInterval(async () => {
         if (document.hidden || isSyncing) {
             return;
         }
@@ -83,33 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const payload = await response.json();
-            if (payload.revision && payload.revision !== currentRevision) {
-                isSyncing = true;
-
-                const payloadResponse = await fetch(payloadUrl, {
-                    method: "GET",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "Accept": "application/json",
-                    },
-                    cache: "no-store",
-                });
-
-                if (!payloadResponse.ok) {
-                    isSyncing = false;
-                    return;
-                }
-
-                const nextPayload = await payloadResponse.json();
-                applyPayload(nextPayload);
-                currentRevision = nextPayload.revision || currentRevision;
-                container.dataset.tvRevision = currentRevision;
-                isSyncing = false;
-            }
+            schedulePayloadSync(payload.revision);
         } catch (error) {
-            isSyncing = false;
+            console.error("TV polling fallback failed", error);
         }
-    }
-
-    setInterval(checkTvUpdates, 3000);
+    }, pollingCheckMs);
 });

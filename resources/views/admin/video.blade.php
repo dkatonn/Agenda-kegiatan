@@ -8,7 +8,7 @@
 
     <div class="panel-header">
         <div>
-            <div class="section-eyebrow">Manajemen Media</div>
+            <div class="section-eyebrow">Manajemen Video</div>
             <h6 class="panel-title">
                 <i class="bi bi-film"></i>
                 Video Kegiatan
@@ -76,7 +76,7 @@
 <div class="modal fade" id="uploadVideoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content admin-form-modal">
-            <form action="{{ route('admin.video.store') }}" method="POST" enctype="multipart/form-data" class="video-upload-form">
+            <form action="{{ route('admin.video.store') }}" method="POST" enctype="multipart/form-data" class="video-upload-form" data-upload-form>
                 @csrf
 
                 <div class="modal-header">
@@ -94,7 +94,13 @@
 
                     <div class="mb-3">
                         <label class="form-label">Nama Video</label>
-                        <input type="text" name="title" class="form-control" placeholder="Masukkan nama video">
+                        <div class="input-counter-field">
+                            <input type="text" name="title" class="form-control" placeholder="Masukkan nama video" maxlength="255" data-char-limit="255">
+                            <small class="text-muted input-counter-meta">
+                                <span>Nama video</span>
+                                <span data-char-counter>0/255</span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -119,7 +125,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary upload-submit-btn">Upload</button>
+                    <button type="submit" class="btn btn-primary upload-submit-btn" data-upload-submit-label="Upload" data-upload-busy-label="Mengupload...">Upload</button>
                 </div>
             </form>
         </div>
@@ -148,6 +154,9 @@
         const progressLabel = form.querySelector('.upload-progress-label');
         const feedback = form.querySelector('.upload-feedback');
         const uploadModalElement = document.getElementById('uploadVideoModal');
+        const setBusyState = (isBusy) => {
+            window.dispatchEvent(new CustomEvent(isBusy ? 'admin:busy-start' : 'admin:busy-end'));
+        };
 
         const resetFeedback = () => {
             feedback.classList.add('d-none');
@@ -224,6 +233,10 @@
 
             if (editModalsContainer && typeof payload?.editModalsHtml === 'string') {
                 editModalsContainer.innerHTML = payload.editModalsHtml;
+            }
+
+            if (typeof window.initAdminCharCounters === 'function') {
+                window.initAdminCharCounters(document);
             }
 
             bindVideoDurations();
@@ -352,17 +365,19 @@
             const xhr = new XMLHttpRequest();
 
             submitButton.disabled = true;
-            submitButton.textContent = 'Uploading...';
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Mengupload...';
             progressWrap.classList.remove('d-none');
             progressBar.style.width = '0%';
             progressPercent.textContent = '0%';
             progressLabel.textContent = 'Mengupload video...';
+            setBusyState(true);
 
             xhr.open(form.method, form.action, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.setRequestHeader('Accept', 'application/json');
 
             xhr.upload.addEventListener('progress', (e) => {
+                window.dispatchEvent(new Event('mousemove'));
                 if (!e.lengthComputable) return;
                 const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
                 progressBar.style.width = `${percent}%`;
@@ -386,12 +401,14 @@
                         progressLabel.textContent = 'Mengupload video...';
                         bootstrap.Modal.getInstance(uploadModalElement)?.hide();
                     }, 450);
+                    setBusyState(false);
                     return;
                 }
 
                 submitButton.disabled = false;
                 submitButton.textContent = 'Upload';
                 progressLabel.textContent = 'Upload gagal.';
+                setBusyState(false);
 
                 let message = 'Upload gagal. Silakan coba lagi.';
 
@@ -418,6 +435,7 @@
                 submitButton.disabled = false;
                 submitButton.textContent = 'Upload';
                 progressLabel.textContent = 'Upload gagal.';
+                setBusyState(false);
                 showError('Koneksi terputus saat upload video.');
             });
 

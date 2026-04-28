@@ -933,3 +933,10 @@ body {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
+.agenda-empty-state {
+    padding: 2px 6px 0;
+    color: #0f172a;
+    font-size: 16px;
+    line-height: 1.35;
+}
+
