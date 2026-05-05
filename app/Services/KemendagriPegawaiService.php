@@ -32,10 +32,14 @@ class KemendagriPegawaiService
 
     public function birthdaySegments(?CarbonInterface $date = null): Collection
     {
-        return $this->getBirthdayEmployees($date)
-            ->map(fn (array $employee) => $this->formatBirthdayMessage($employee))
-            ->filter(fn (?string $message) => filled($message))
+        $names = $this->getBirthdayEmployees($date)
+            ->map(fn (array $employee) => $this->sanitizeSegment($employee['display_name'] ?? null))
+            ->filter(fn (string $name) => $name !== '')
             ->values();
+
+        $message = $this->formatBirthdayMessage($names);
+
+        return filled($message) ? collect([$message]) : collect();
     }
 
     public function getBirthdayEmployees(?CarbonInterface $date = null): Collection
@@ -271,15 +275,33 @@ class KemendagriPegawaiService
         ])->first(fn (string $value) => $value !== '', '');
     }
 
-    protected function formatBirthdayMessage(array $employee): ?string
+    protected function formatBirthdayMessage(Collection $names): ?string
     {
-        $name = $this->sanitizeSegment($employee['display_name'] ?? null);
+        $nameList = $this->formatNameList($names);
 
-        if ($name === '') {
+        if ($nameList === '') {
             return null;
         }
 
-        return "Selamat berulang tahun : {$name} \u{1F389}";
+        return "Selamat berulang tahun : {$nameList} \u{1F389}";
+    }
+
+    protected function formatNameList(Collection $names): string
+    {
+        $names = $names
+            ->map(fn (mixed $name) => $this->sanitizeSegment($name))
+            ->filter(fn (string $name) => $name !== '')
+            ->values();
+
+        if ($names->count() <= 1) {
+            return $names->first() ?? '';
+        }
+
+        if ($names->count() === 2) {
+            return $names->implode(' & ');
+        }
+
+        return $names->slice(0, -1)->implode(', ') . ' & ' . $names->last();
     }
 
     protected function sanitizeSegment(mixed $value): string

@@ -72,6 +72,42 @@ class SyncBirthdayTodayCommandTest extends TestCase
         );
     }
 
+    public function test_ticker_text_groups_multiple_birthday_names_into_one_message(): void
+    {
+        foreach (['Dr. Siti Aminah, M.Si', 'Ir. Budi Santoso, M.T.'] as $name) {
+            BirthdayToday::query()->create([
+                'birthday_date' => now()->toDateString(),
+                'display_name' => $name,
+                'fetched_at' => now(),
+            ]);
+        }
+
+        $text = app(KemendagriPegawaiService::class)->buildTickerText('Agenda pimpinan dimulai pukul 09.00');
+
+        $this->assertSame(
+            "Selamat berulang tahun : Dr. Siti Aminah, M.Si & Ir. Budi Santoso, M.T. \u{1F389} | Agenda pimpinan dimulai pukul 09.00",
+            $text
+        );
+    }
+
+    public function test_ticker_text_uses_commas_and_ampersand_for_three_or_more_birthday_names(): void
+    {
+        foreach (['Andi Pratama', 'Dr. Siti Aminah, M.Si', 'Ir. Budi Santoso, M.T.'] as $name) {
+            BirthdayToday::query()->create([
+                'birthday_date' => now()->toDateString(),
+                'display_name' => $name,
+                'fetched_at' => now(),
+            ]);
+        }
+
+        $text = app(KemendagriPegawaiService::class)->buildTickerText('Agenda pimpinan dimulai pukul 09.00');
+
+        $this->assertSame(
+            "Selamat berulang tahun : Andi Pratama, Dr. Siti Aminah, M.Si & Ir. Budi Santoso, M.T. \u{1F389} | Agenda pimpinan dimulai pukul 09.00",
+            $text
+        );
+    }
+
     public function test_ticker_text_attempts_sync_when_today_cache_is_empty(): void
     {
         Http::fake([
