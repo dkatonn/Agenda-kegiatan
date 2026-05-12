@@ -92,7 +92,14 @@ class TVController extends Controller
             : $this->resolveVideoUrlFromPath($settings['video'] ?? null);
         $tickerText = $this->kemendagriPegawaiService->buildTickerText($settings['running_text'] ?? null);
 
-        $employees = Employee::latest()->get();
+        $employees = Employee::query()
+            ->when(
+                Schema::hasTable('employees') && Schema::hasColumn('employees', 'sort_order'),
+                fn ($query) => $query->orderBy('sort_order'),
+                fn ($query) => $query->latest()
+            )
+            ->orderByDesc('id')
+            ->get();
         $tvRevision = $this->getTvRevision();
         $agendaTu = $this->tataUsahaAgendaService->fetchAgenda(10);
         $agendaData = Agenda::query()

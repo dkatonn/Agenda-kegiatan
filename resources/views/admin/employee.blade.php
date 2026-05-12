@@ -4,6 +4,10 @@
 
 @section('content')
 
+@php
+    $canReorderEmployees = $search === '' && \Illuminate\Support\Facades\Schema::hasColumn('employees', 'sort_order');
+@endphp
+
 <div class="admin-card data-panel" data-server-table="true">
 
     <div class="panel-header">
@@ -21,7 +25,12 @@
     </div>
 
     <div class="panel-toolbar table-toolbar">
-        <div class="panel-meta">Total {{ $employee->total() }} pegawai tersimpan.</div>
+        <div class="panel-meta">
+            Total {{ $employee->total() }} pegawai tersimpan.
+            @if($canReorderEmployees)
+                Anda dapat mengubah urutan tampilan pegawai dengan menyeret ikon geser pada foto profil pegawai.
+            @endif
+        </div>
         <form method="GET" action="{{ route('admin.employee') }}" class="table-controls" data-server-table-form>
             <label class="table-control-inline">
                 <span>Tampilkan</span>
@@ -53,13 +62,20 @@
                 </tr>
             </thead>
 
-            <tbody>
+            <tbody data-employee-sortable="{{ $canReorderEmployees ? 'true' : 'false' }}" data-start-order="{{ $employee->firstItem() ?? 1 }}">
 
                 @forelse($employee as $emp)
 
-                <tr>
+                <tr class="{{ $canReorderEmployees ? 'js-sortable-row js-employee-sortable-row' : '' }}" draggable="false" data-employee-id="{{ $emp->id }}">
 
-                    <td>
+                    <td class="employee-photo-cell {{ $canReorderEmployees ? 'has-employee-sort-handle' : '' }}">
+                        <div class="employee-photo-sort-group">
+                            @if($canReorderEmployees)
+                            <button type="button" class="btn btn-light btn-sm employee-sort-handle" title="Geser untuk ubah urutan" aria-label="Geser {{ $emp->name }} untuk ubah urutan">
+                                <i class="bi bi-grip-vertical"></i>
+                            </button>
+                            @endif
+
                         @if($emp->image_path)
                         <img src="{{ asset('storage/'.$emp->image_path) }}" class="avatar" alt="{{ $emp->name }}">
                         @else
@@ -67,6 +83,7 @@
                             <i class="bi bi-person"></i>
                         </span>
                         @endif
+                        </div>
                     </td>
 
                     <td>{{ $emp->name }}</td>
@@ -305,6 +322,87 @@
             };
 
             reader.readAsDataURL(file);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.querySelector('[data-employee-sortable="true"]');
+        if (!tableBody) return;
+
+        const sortableRows = () => Array.from(tableBody.querySelectorAll('.js-employee-sortable-row'));
+        let draggedRow = null;
+
+        const parseJsonResponse = async (response) => {
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const firstError = payload?.errors
+                    ? Object.values(payload.errors).flat()[0]
+                    : null;
+
+                throw new Error(firstError || payload?.message || `Request gagal (${response.status}).`);
+            }
+
+            return payload;
+        };
+
+        const sendOrderUpdate = () => {
+            const orderedIds = sortableRows().map((row) => Number(row.dataset.employeeId));
+            if (!orderedIds.length) return;
+
+            fetch('{{ route('admin.employee.reorder') }}', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    ordered_ids: orderedIds,
+                    start_order: Number(tableBody.dataset.startOrder || 1),
+                }),
+            })
+                .then(parseJsonResponse)
+                .catch((error) => {
+                    console.error(error);
+                    window.alert('Urutan pegawai gagal diperbarui. Muat ulang halaman lalu coba lagi.');
+                });
+        };
+
+        sortableRows().forEach((row) => {
+            const handle = row.querySelector('.employee-sort-handle');
+
+            if (handle) {
+                handle.addEventListener('mousedown', () => {
+                    row.setAttribute('draggable', 'true');
+                });
+            }
+
+            row.addEventListener('dragstart', () => {
+                draggedRow = row;
+                row.classList.add('is-dragging');
+            });
+
+            row.addEventListener('dragend', () => {
+                row.classList.remove('is-dragging');
+                row.setAttribute('draggable', 'false');
+                draggedRow = null;
+                sendOrderUpdate();
+            });
+
+            row.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                if (!draggedRow || draggedRow === row) return;
+
+                const rect = row.getBoundingClientRect();
+                const offset = event.clientY - rect.top;
+
+                tableBody.insertBefore(
+                    draggedRow,
+                    offset < rect.height / 2 ? row : row.nextSibling
+                );
+            });
         });
     });
 </script>

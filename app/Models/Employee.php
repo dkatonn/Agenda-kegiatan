@@ -17,6 +17,7 @@ class Employee extends Model
         'nip',
         'role',
         'image_path',
+        'sort_order',
         'created_by',
         'updated_by',
         'locked_by',
@@ -54,6 +55,7 @@ class Employee extends Model
                 'nip',
                 'role',
                 'image_path',
+                'sort_order',
                 'created_by',
                 'updated_by',
             ])

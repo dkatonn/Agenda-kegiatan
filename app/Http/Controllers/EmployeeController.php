@@ -10,6 +10,7 @@ use App\Services\TvRevisionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,7 +27,7 @@ class EmployeeController extends Controller
     {
         $search = trim((string) $request->query('q', ''));
         $perPage = $this->resolvePerPage($request->query('per_page'));
-        $employee = Employee::query()
+        $employee = $this->orderedEmployeesQuery()
             ->with(['updater', 'locker'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($innerQuery) use ($search) {
@@ -36,7 +37,6 @@ class EmployeeController extends Controller
                         ->orWhere('role', 'like', "%{$search}%");
                 });
             })
-            ->latest()
             ->paginate($perPage)
             ->withQueryString();
 
@@ -61,14 +61,20 @@ class EmployeeController extends Controller
             $path = $request->file('image')->store('employee', 'public');
         }
 
-        $employee = Employee::create([
+        $attributes = [
             'name' => $validated['name'],
             'nip' => $validated['nip'] ?? null,
             'role' => $validated['role'],
             'image_path' => $path,
             'created_by' => Schema::hasColumn('employees', 'created_by') ? $request->user()?->id : null,
             'updated_by' => Schema::hasColumn('employees', 'updated_by') ? $request->user()?->id : null,
-        ]);
+        ];
+
+        if ($this->hasSortOrderColumn()) {
+            $attributes['sort_order'] = $this->nextSortOrder();
+        }
+
+        $employee = Employee::create($attributes);
 
         $this->activityLogger->log('User menambah data pegawai', [
             'employee_id' => $employee->id,
@@ -79,6 +85,45 @@ class EmployeeController extends Controller
         $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
 
         return back();
+    }
+
+    public function reorder(Request $request): JsonResponse
+    {
+        abort_unless($this->hasSortOrderColumn(), 404);
+
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['integer', 'distinct', 'exists:employees,id'],
+            'start_order' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $startOrder = (int) ($validated['start_order'] ?? 1);
+
+        DB::transaction(function () use ($validated, $request, $startOrder) {
+            foreach ($validated['ordered_ids'] as $index => $employeeId) {
+                $updatePayload = [
+                    'sort_order' => $startOrder + $index,
+                ];
+
+                if (Schema::hasColumn('employees', 'updated_by')) {
+                    $updatePayload['updated_by'] = $request->user()?->id;
+                }
+
+                Employee::query()
+                    ->where('id', $employeeId)
+                    ->update($updatePayload);
+            }
+        });
+
+        $this->activityLogger->log('User mengubah urutan pegawai', [
+            'ordered_ids' => $validated['ordered_ids'],
+            'start_order' => $startOrder,
+        ]);
+        $this->tvBroadcastService->dispatchUpdate($this->tvRevisionService->current());
+
+        return response()->json([
+            'message' => 'Urutan pegawai berhasil diperbarui.',
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -201,6 +246,27 @@ class EmployeeController extends Controller
         $perPage = (int) $perPage;
 
         return in_array($perPage, [5, 10, 25], true) ? $perPage : 10;
+    }
+
+    protected function hasSortOrderColumn(): bool
+    {
+        return Schema::hasTable('employees') && Schema::hasColumn('employees', 'sort_order');
+    }
+
+    protected function nextSortOrder(): int
+    {
+        return ((int) Employee::query()->max('sort_order')) + 1;
+    }
+
+    protected function orderedEmployeesQuery()
+    {
+        $query = Employee::query();
+
+        if ($this->hasSortOrderColumn()) {
+            return $query->orderBy('sort_order')->orderByDesc('id');
+        }
+
+        return $query->latest();
     }
 
     protected function lockViolationResponse(Request $request, Employee $employee, string $entityLabel)

@@ -69,6 +69,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/employee/{id}/lock', [EmployeeController::class, 'lock'])->name('employee.lock');
     Route::delete('/employee/{id}/lock', [EmployeeController::class, 'unlock'])->name('employee.unlock');
 
+    Route::patch('/employee/reorder', [EmployeeController::class, 'reorder'])->name('employee.reorder');
+
     Route::delete('/employee/{id}', [EmployeeController::class, 'destroy'])->name('employee.delete');
 
     // CRUD AGENDA
